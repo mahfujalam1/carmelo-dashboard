@@ -37,10 +37,10 @@ export default function CategoryPage() {
   const removeRow = (id) => setRows((prev) => prev.filter((r) => r.id !== id));
 
   return (
-    <div className="space-y-4">
+    <div>
       {/* Toolbar */}
       <div className="flex items-center justify-between gap-3">
-        <div className="w-56">
+        <div className="w-56 pb-5">
           <label className="relative flex">
             <select className="w-full appearance-none rounded-lg border px-3 py-2 pr-8 text-sm cursor-pointer">
               <option>Category</option>

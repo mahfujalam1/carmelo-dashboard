@@ -18,6 +18,8 @@ import CategoryPage from "../page/Category/Category";
 import ChatLayout from "../page/chat/chat/ChatLayout";
 import ManageOrderTable from "../page/manageOrder/ManageOrderTable";
 import ProductsPage from "../page/OldCrisis/ProductPage";
+import Templates from "../page/templates/Templates";
+import NewsTable from "../page/News/NewTable";
 
 const router = createBrowserRouter([
   {
@@ -50,6 +52,14 @@ const router = createBrowserRouter([
       {
         path: "oldcrisis",
         element: <ProductsPage />,
+      }, 
+      {
+        path: "templates",
+        element: <Templates />,
+      }, 
+      {
+        path: "news",
+        element: <NewsTable />,
       }, 
       {
         path: "settings",

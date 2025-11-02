@@ -1,14 +1,23 @@
 import React, { useState } from "react";
 import { Pencil, Trash2, Eye } from "lucide-react";
 import ConfirmModal from "../../ui/Modal/ConfirmModal";
+import { EditProductModal } from "../../ui/Modal/EditProductModal";
+import ProductViewModal from "../../ui/Modal/ProductViewModal";
 
-export default function ProductActions({ onEdit, onDeleteConfirm, onView }) {
+export default function ProductActions({
+  onEdit,
+  onDeleteConfirm,
+  onView,
+  data,
+}) {
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [updateModalOpen, setUpdateModalOpen] = useState(false);
+  const [open, setOpen] = useState(false);
 
   return (
     <>
       <button
-        onClick={onEdit}
+        onClick={() => setUpdateModalOpen(true)}
         className="rounded p-1 hover:bg-gray-100"
         aria-label="Edit"
       >
@@ -24,7 +33,7 @@ export default function ProductActions({ onEdit, onDeleteConfirm, onView }) {
       </button>
 
       <button
-        onClick={onView}
+        onClick={()=> setOpen(true)}
         className="rounded p-1 hover:bg-gray-100"
         aria-label="View"
       >
@@ -43,6 +52,23 @@ export default function ProductActions({ onEdit, onDeleteConfirm, onView }) {
         message="You want to delete this product."
         confirmText="Yes"
         cancelText="No"
+      />
+
+      {/* Edit modal */}
+      <EditProductModal
+        open={updateModalOpen}
+        onClose={() => setUpdateModalOpen(false)}
+        onSave={(updated) => {
+          onEdit?.(updated);
+          setUpdateModalOpen(false);
+        }}
+        product={data}
+      />
+
+      <ProductViewModal
+        open={open}
+        onClose={() => setOpen(false)}
+        product={data}
       />
     </>
   );
