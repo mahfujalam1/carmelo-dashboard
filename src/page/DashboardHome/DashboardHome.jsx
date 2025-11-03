@@ -8,14 +8,14 @@ const DashboardHome = () => {
       <div className="px-3 ">
         <Status />
     
-        <div className="w-full h-full md:h-[50vh]  flex flex-col gap-4 md:flex-row justify-between items-center my-10">
+        <div className="w-full h-full lg:h-[50vh]  flex flex-col gap-4 lg:flex-row justify-between items-center my-10">
             {/* Left Column: Chart */}
-            <div className="w-full lg:w-[50%]  rounded-lg p-1">
+            <div className="w-full lg:w-[50%] md:w-full  rounded-lg p-1">
               <IncomeGraphChart />
             </div>
             
             {/* Right Column: Pie Chart */}
-            <div className="w-full lg:w-[50%]">
+            <div className="w-full lg:w-[50%] md:w-full">
               <Piechart />
             </div>
           </div>

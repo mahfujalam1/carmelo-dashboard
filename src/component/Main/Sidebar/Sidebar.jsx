@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Home,
   LayoutList,
@@ -14,7 +14,9 @@ import {
   Menu,
   X,
 } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import ConfirmModal from "../../ui/Modal/ConfirmModal";
+import { toast } from "sonner";
 
 const navItems = [
   { label: "Dashboard", to: "/", icon: Home },
@@ -30,6 +32,13 @@ const navItems = [
 
 export default function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    toast.success("User Logged Out!");
+    navigate("/auth/sign-in");
+  };
 
   return (
     <>
@@ -59,8 +68,6 @@ export default function Sidebar() {
       >
         {/* Header */}
         <div className="flex items-center gap-3  px-4 py-4">
-          
-
           {/* Close (mobile) */}
           <button
             onClick={() => setMobileOpen(false)}
@@ -104,7 +111,7 @@ export default function Sidebar() {
 
           <div className="mt-4 border-t pt-4">
             <button
-              onClick={() => alert("Logging out…")}
+              onClick={() => setConfirmOpen(true)}
               className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-gray-700 hover:bg-gray-100"
             >
               <LogOut className="h-5 w-5" />
@@ -113,6 +120,17 @@ export default function Sidebar() {
           </div>
         </nav>
       </aside>
+
+      <ConfirmModal
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={handleLogout}
+        from="right"
+        title="You want to logout?"
+        message="Are you sure you want to logout?"
+        confirmText="Yes"
+        cancelText="No"
+      />
     </>
   );
 }

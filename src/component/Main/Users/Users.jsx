@@ -170,20 +170,20 @@ const Users = () => {
         <Form layout="inline" className="flex space-x-4">
           <Item name="date">
             <DatePicker
-              className="rounded-md border border-[#FF8133]"
+              className="rounded-md border border-gray-600"
               onChange={(date) => setSelectedDate(date)}
               placeholder="Select Date"
             />
           </Item>
           <Item name="username">
             <Input
-              className="rounded-md w-[70%] md:w-full border border-[#FF8133]"
+              className="rounded-md w-[70%] md:w-full border border-gray-600"
               placeholder="User Name"
               onChange={(e) => setSearchText(e.target.value)}
             />
           </Item>
           <Item>
-            <button className="size-8 rounded-full flex justify-center items-center bg-[#FF8133] ">
+            <button className="size-8 rounded-full flex justify-center items-center border-2">
               <IoIosSearch className="size-5" />
             </button>
           </Item>
@@ -193,7 +193,7 @@ const Users = () => {
         theme={{
           components: {
             Table: {
-              headerBg: "#FF8133",
+              headerBg: "#00",
               headerColor: "#000",
               headerBorderRadius: 5,
             },
@@ -234,11 +234,13 @@ const Users = () => {
                 alt="Profile"
               />
               <div>
-              <h1 className="text-start text-xl font-semibold my-2 ml-5">
-                {user?.firstName} {user?.lastName}
-              </h1>
-              <h1 className="text-start font-semibold  my-2 ml-5">I am  Ui/Ux designer. </h1>
-              <p className="text-start   my-2 ml-5">100 connections</p>
+                <h1 className="text-start text-xl font-semibold my-2 ml-5">
+                  {user?.firstName} {user?.lastName}
+                </h1>
+                <h1 className="text-start font-semibold  my-2 ml-5">
+                  I am Ui/Ux designer.{" "}
+                </h1>
+                <p className="text-start   my-2 ml-5">100 connections</p>
               </div>
             </div>
             <div className="flex justify-between py-3 border-b">

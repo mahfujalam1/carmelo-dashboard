@@ -1,11 +1,9 @@
 // src/components/Status.jsx
-import React from "react";
-
 export default function Status() {
   const stats = [
     { label: "Total User", value: 1582 },
     { label: "Total Category", value: 280 },
-    { label: "Total Earning", value: 2580.0, currency: "USD" },
+    { label: "Total Earning", value: 2580, currency: "USD" },
     { label: "Total Template", value: 256 },
   ];
 
@@ -14,12 +12,12 @@ export default function Status() {
       ? new Intl.NumberFormat(undefined, {
           style: "currency",
           currency: s.currency,
-          minimumFractionDigits: 2,
+          minimumFractionDigits: 0,
         }).format(s.value)
       : new Intl.NumberFormat().format(s.value);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
       {stats.map((s) => (
         <div
           key={s.label}

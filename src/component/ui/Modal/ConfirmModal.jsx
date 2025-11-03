@@ -1,4 +1,4 @@
-import React from "react";
+import { useNavigate } from "react-router-dom";
 import CategoryModal from "./CategoryModal";
 
 /** Simple Yes/No confirmation modal (re-uses CategoryModal) */
@@ -12,6 +12,8 @@ export default function ConfirmModal({
   cancelText = "No",
   from = "center", // pass direction if you want slide-in from any side
 }) {
+
+
   return (
     <CategoryModal open={open} onClose={onClose} title={title} from={from}>
       <p className="px-1 pb-4 text-center text-gray-700">{message}</p>
