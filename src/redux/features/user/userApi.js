@@ -2,7 +2,7 @@ import { baseApi } from "../../baseApi/baseApi";
 
 const userApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getAllUsers: builder.query({
+    getAllAdmin: builder.query({
       query: (args) => {
         console.log(args);
         const params = new URLSearchParams();
@@ -19,7 +19,20 @@ const userApi = baseApi.injectEndpoints({
         };
       },
     }),
+
+    getAllUsers: builder.query({
+      query: () => ({
+        url: `/users`,
+        method: "GET",
+      }),
+    }),
+    usersGrowth: builder.query({
+      query: (year) => ({
+        url: `/users/growth?year=${year}`,
+        method: "GET",
+      }),
+    }),
   }),
 });
 
-export const { useGetAllUsersQuery } = userApi;
+export const { useGetAllAdminQuery, useGetAllUsersQuery, useUsersGrowthQuery } = userApi;

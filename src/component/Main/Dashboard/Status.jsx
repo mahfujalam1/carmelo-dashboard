@@ -1,11 +1,27 @@
+import { useGetCategoriesQuery } from "../../../redux/features/categories/categories";
+import { useGetDashboardStatusQuery } from "../../../redux/features/dashboard/dashboardApi";
+import { useGetAllTemplatesQuery } from "../../../redux/features/template/templates";
+import { useGetAllUsersQuery } from "../../../redux/features/user/userApi";
+
 // src/components/Status.jsx
 export default function Status() {
+  const { data } = useGetDashboardStatusQuery();
+  const {data: users} = useGetAllUsersQuery()
+  const {data: categories} = useGetCategoriesQuery()
+  const templatesCount = useGetAllTemplatesQuery() 
+  const templatesCountData = templatesCount?.data?.data?.templates?.length || 0;
+  const categoriesCount = categories?.data?.length || 0;
+  const userCount = users?.data?.users?.length || 0;
+  const earning = data?.data.total || 0;
+
   const stats = [
-    { label: "Total User", value: 1582 },
-    { label: "Total Category", value: 280 },
-    { label: "Total Earning", value: 2580, currency: "USD" },
-    { label: "Total Template", value: 256 },
+    { label: "Total User", value: userCount },
+    { label: "Total Category", value: categoriesCount },
+    { label: "Total Earning", value: earning, currency: "USD" },
+    { label: "Total Template", value: templatesCountData },
   ];
+
+  
 
   const format = (s) =>
     s.currency

@@ -1,4 +1,3 @@
-// src/components/EarningGrowthChart.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Chart,
@@ -10,6 +9,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import { useGetPaymentesGrowthQuery } from "../../../redux/features/payments/paymentes";
 
 Chart.register(
   LineController,
@@ -42,13 +42,13 @@ Chart.register(ChartAreaGradient);
 const MONTHS = [
   "Jan",
   "Feb",
-  "March",
-  "April",
+  "Mar",
+  "Apr",
   "May",
-  "June",
-  "July",
-  "August",
-  "Sept",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
   "Oct",
   "Nov",
   "Dec",
@@ -59,19 +59,23 @@ export default function EarningGrowthChart() {
   const chartRef = useRef(null);
   const [year, setYear] = useState(2025);
 
-  // demo data — API ডেটা দিলে এখানে বসান
-  const dataByYear = useMemo(
-    () => ({
-      2024: [35, 45, 60, 22, 75, 50, 38, 46, 18, 24, 16, 58],
-      2025: [85, 72, 62, 28, 80, 66, 30, 48, 12, 19, 11, 80],
-    }),
-    []
-  );
+  // Fetch dynamic data from the API
+  const { data, isLoading, error } = useGetPaymentesGrowthQuery(year);
+const earingData = data?.data || [];
+  // Process API data into months and totals
+  const chartData = useMemo(() => {
+    if (!earingData) return [];
+    return MONTHS?.map((_, index) => {
+      const monthData = earingData?.find((item) => item.month === index + 1);
+      return monthData ? monthData.total : 0; // default to 0 if no data for a month
+    });
+  }, [earingData]);
 
   useEffect(() => {
-    const ctx = canvasRef.current.getContext("2d");
+    const ctx = canvasRef.current?.getContext("2d");
     chartRef.current?.destroy();
 
+    // Create the chart
     chartRef.current = new Chart(ctx, {
       type: "line",
       data: {
@@ -79,10 +83,9 @@ export default function EarningGrowthChart() {
         datasets: [
           {
             label: `${year}`,
-            data: dataByYear[year] || [],
-            // --- only line, no area fill ---
+            data: chartData,
             fill: false,
-            tension: 0, // <-- straight segments (no rounded curve)
+            tension: 0,
             borderColor: "#111827",
             borderWidth: 2,
             pointRadius: 3,
@@ -103,10 +106,9 @@ export default function EarningGrowthChart() {
             intersect: false,
             callbacks: { label: (ctx) => ` ${ctx.parsed.y}` },
           },
-          // plugin options (bg gradient)
           chartAreaGradient: {
-            from: "rgba(17,24,39,0.08)", // top color
-            to: "rgba(17,24,39,0.00)", // bottom color
+            from: "rgba(17,24,39,0.08)",
+            to: "rgba(17,24,39,0.00)",
           },
         },
         scales: {
@@ -124,7 +126,7 @@ export default function EarningGrowthChart() {
     });
 
     return () => chartRef.current?.destroy();
-  }, [year, dataByYear]);
+  }, [year, chartData]); // Depend on year and chartData
 
   return (
     <div className="rounded-2xl border bg-gray-50 p-4 shadow-sm">
@@ -143,7 +145,13 @@ export default function EarningGrowthChart() {
       </div>
 
       <div className="h-64 md:h-72">
-        <canvas ref={canvasRef} />
+        {isLoading ? (
+          <p>Loading...</p>
+        ) : error ? (
+          <p>Error loading data</p>
+        ) : (
+          <canvas ref={canvasRef} />
+        )}
       </div>
 
       <div className="mt-2 text-center text-sm text-gray-500">◌ {year}</div>

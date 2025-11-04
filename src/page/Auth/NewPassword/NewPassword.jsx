@@ -1,109 +1,108 @@
-import changePasswordImage from "../../../assets/auth/changePassword.png";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { IoIosArrowBack } from "react-icons/io";
-import { Form } from "antd"; // Import Ant Design Form
-import CustomInput from "../../../utils/CustomInput";
-import CustomButton from "../../../utils/CustomButton";
-import { toast } from "sonner";
-import { useResetPasswordMutation } from "../../../redux/features/auth/authApi";
+import React, { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
 
 const NewPassword = () => {
-  const navigate = useNavigate();
   const { email } = useParams();
-  const [resetPassword, { isLoading }] = useResetPasswordMutation();
-  const submit = async (values) => {
-    const { password } = values;
-    try {
-      const res = await resetPassword({
-        email,
-        password: password,
-      });
-      if (res.error) {
-        toast.error(res.error.data.message);
-      }
-      if (res.data) {
-        toast.success(res.data.message);
-        navigate("/auth/login");
-      }
-    } catch (error) {
-      toast.error("Something went wrong");
+  const navigate = useNavigate();
+
+  const [passwords, setPasswords] = useState({
+    current: "",
+    new: "",
+    confirm: "",
+  });
+
+  const [visible, setVisible] = useState({
+    current: false,
+    new: false,
+    confirm: false,
+  });
+
+  const [error, setError] = useState("");
+
+  const handleChange = (e) => {
+    setPasswords({ ...passwords, [e.target.name]: e.target.value });
+    setError(""); // clear error when typing
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    if (passwords.new !== passwords.confirm) {
+      setError("New password and confirm password do not match!");
+      return;
     }
+
+    console.log("Password updated for:", email, passwords);
+    navigate("/auth/sign-in");
   };
 
   return (
-    <div className="w-full h-full md:h-screen md:flex justify-around ">
-    <div className="w-full max-w-7xl mx-auto rounded-md h-[70%] md:my-28 grid grid-cols-1 md:grid-cols-2 place-content-center px-5 py-10 gap-8  md:mx-10">
-      <div>
-        <img
-          src={changePasswordImage}
-          className="w-full h-full mx-auto"
-          alt="Change Password Illustration"
-        />
-      </div>
-      <div className="mt-16">
-        <div className="mb-5">
-          <h1 className="font-semibold text-xl flex items-center gap-2">
-            <Link to="/auth/otp">
-              <IoIosArrowBack />
-            </Link>
-            Update Password
-          </h1>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="bg-white rounded-xl shadow-md w-full max-w-lg p-10 text-center">
+        {/* Logo */}
+        <div className="flex flex-col items-center mb-6">
+          
         </div>
 
-        {/* Ant Design Form */}
-        <Form
-          layout="vertical"
-          onFinish={submit} // Ant Design's form submission handler
-          initialValues={{ password: "", confirmPassword: "" }} // Initial values
-        >
-          {/* CustomInput wrapped inside Form.Item for validation */}
-          <Form.Item
-            label="New Password"
-            name="password"
-            rules={[
-              {
-                required: true,
-                message: "Please input your new password",
-              },
-            ]}
-          >
-            <CustomInput isPassword type="password" placeholder="Password" />
-          </Form.Item>
+        {/* Title */}
+        <h2 className="text-lg font-semibold text-gray-800 mb-6">
+          Set new password
+        </h2>
 
-          <Form.Item
-            label="Confirm Password"
-            name="confirmPassword"
-            rules={[
-              {
-                required: true,
-                message: "Please confirm your password",
-              },
-              ({ getFieldValue }) => ({
-                validator(_, value) {
-                  if (!value || getFieldValue("password") === value) {
-                    return Promise.resolve();
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-4 text-left">
+          {["current", "new", "confirm"].map((type) => (
+            <div key={type}>
+              <label className="block text-sm font-medium text-gray-700 mb-1 capitalize">
+                {type === "confirm"
+                  ? "Confirm New Password"
+                  : `${type} Password`}
+              </label>
+              <div className="relative">
+                <input
+                  type={visible[type] ? "text" : "password"}
+                  name={type}
+                  value={passwords[type]}
+                  onChange={handleChange}
+                  placeholder={
+                    type === "current"
+                      ? "Enter your current password"
+                      : type === "new"
+                      ? "Enter your new password"
+                      : "Confirm your new password"
                   }
-                  return Promise.reject(new Error("Passwords do not match!"));
-                },
-              }),
-            ]}
-          >
-            <CustomInput
-              isPassword
-              type="password"
-              placeholder="Confirm Password"
-            />
-          </Form.Item>
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-black pr-10"
+                  required
+                />
+                <span
+                  className="absolute right-3 top-2.5 text-gray-500 cursor-pointer"
+                  onClick={() =>
+                    setVisible({ ...visible, [type]: !visible[type] })
+                  }
+                >
+                  {visible[type] ? <EyeTwoTone /> : <EyeInvisibleOutlined />}
+                </span>
+              </div>
+            </div>
+          ))}
 
-          {/* CustomButton for submission */}
-          <Form.Item>
-            <CustomButton loading={isLoading} border className="w-full">
-              Update Password
-            </CustomButton>
-          </Form.Item>
-        </Form>
+          {/* Error Message */}
+          {error && (
+            <p className="text-red-500 text-sm font-medium text-center -mt-2">
+              {error}
+            </p>
+          )}
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            className="w-full bg-black text-white py-2 rounded-md font-semibold hover:bg-gray-900 transition-all"
+          >
+            Save Password
+          </button>
+        </form>
       </div>
-    </div>
     </div>
   );
 };

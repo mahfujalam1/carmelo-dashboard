@@ -13,6 +13,7 @@ import {
   LogOut,
   Menu,
   X,
+  ChevronDown,
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import ConfirmModal from "../../ui/Modal/ConfirmModal";
@@ -27,17 +28,23 @@ const navItems = [
   { label: "Template Manage", to: "/templates", icon: FileText },
   { label: "News Manage", to: "/news", icon: Newspaper },
   { label: "User Manage", to: "/users", icon: Users },
-  { label: "Settings", to: "/settings", icon: Settings, hasChevron: true },
+];
+
+const settingsSubRoutes = [
+  { label: "Profile", to: "/settings/profile" },
+  { label: "Terms & Condition", to: "/settings/terms-conditions" },
+  { label: "Privacy Policy", to: "/settings/privacy-policy" },
 ];
 
 export default function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleLogout = () => {
     toast.success("User Logged Out!");
-    navigate("/auth/sign-in");
+    navigate("/auth");
   };
 
   return (
@@ -84,7 +91,7 @@ export default function Sidebar() {
             {navItems.map((item) => {
               const Icon = item.icon;
               return (
-                <li key={item.to} className="group relative">
+                <li key={item.to}>
                   <NavLink
                     to={item.to}
                     end={item.to === "/"}
@@ -100,13 +107,49 @@ export default function Sidebar() {
                   >
                     <Icon className="h-5 w-5 shrink-0" />
                     <span>{item.label}</span>
-                    {item.hasChevron && (
-                      <ChevronRight className="ml-auto h-4 w-4 opacity-60" />
-                    )}
                   </NavLink>
                 </li>
               );
             })}
+
+            {/* Settings Dropdown */}
+            <li>
+              <button
+                onClick={() => setSettingsOpen((prev) => !prev)}
+                className="flex w-full items-center gap-3 rounded-r-xl px-3 py-3 text-gray-700 hover:bg-gray-100 transition"
+              >
+                <Settings className="h-5 w-5" />
+                <span>Settings</span>
+                {settingsOpen ? (
+                  <ChevronDown className="ml-auto h-4 w-4 opacity-60" />
+                ) : (
+                  <ChevronRight className="ml-auto h-4 w-4 opacity-60" />
+                )}
+              </button>
+
+              {settingsOpen && (
+                <ul className="ml-9 mt-1 space-y-1 border-l pl-3 text-sm text-gray-700">
+                  {settingsSubRoutes.map((sub) => (
+                    <li key={sub.to}>
+                      <NavLink
+                        to={sub.to}
+                        onClick={() => setMobileOpen(false)}
+                        className={({ isActive }) =>
+                          [
+                            "block rounded-md px-2 py-1.5",
+                            isActive
+                              ? "bg-gray-900 text-white"
+                              : "hover:bg-gray-100",
+                          ].join(" ")
+                        }
+                      >
+                        {sub.label}
+                      </NavLink>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
           </ul>
 
           <div className="mt-4 border-t pt-4">

@@ -1,4 +1,3 @@
-// src/components/UserGrowthChart.jsx
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import {
   Chart,
@@ -11,6 +10,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import { useUsersGrowthQuery } from "../../../redux/features/user/userApi";
 
 Chart.register(
   LineController,
@@ -29,10 +29,10 @@ const MONTHS = [
   "Mar",
   "Apr",
   "May",
-  "June",
-  "July",
+  "Jun",
+  "Jul",
   "Aug",
-  "Sept",
+  "Sep",
   "Oct",
   "Nov",
   "Dec",
@@ -43,24 +43,29 @@ export default function UserGrowthChart() {
   const chartRef = useRef(null);
   const [year, setYear] = useState(2025);
 
-  // Demo data (তুমি API থেকে আনলে এখানে বসিয়ে দিও)
-  const dataByYear = useMemo(
-    () => ({
-      2024: [10, 35, 55, 25, 40, 60, 50, 70, 45, 65, 50, 75],
-      2025: [15, 90, 100, 12, 22, 33, 85, 25, 93, 66, 41, 80],
-    }),
-    []
-  );
+  // Fetch dynamic data from the API based on the selected year
+  const { data, isLoading, error } = useUsersGrowthQuery(year);
+  const userData = data?.data || []; // Access the correct data structure
+  console.log("User Data: ", userData);
+
+  // Process API data into months and totals
+  const chartData = useMemo(() => {
+    if (!userData) return new Array(12).fill(0); // Default empty data if no data found
+    return MONTHS?.map((_, index) => {
+      const monthData = userData.find((item) => item.month === index + 1);
+      return monthData ? monthData.count : 0; // Default to 0 if no data for the month
+    });
+  }, [userData]);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
+    const ctx = canvasRef.current?.getContext("2d");
 
-    // Destroy previous instance on re-render
+    // Destroy previous chart instance on re-render
     if (chartRef.current) {
       chartRef.current.destroy();
     }
 
+    // Create the new chart
     chartRef.current = new Chart(ctx, {
       type: "line",
       data: {
@@ -68,7 +73,7 @@ export default function UserGrowthChart() {
         datasets: [
           {
             label: `${year}`,
-            data: dataByYear[year] || [],
+            data: chartData, // Use dynamic chartData here
             borderColor: "#111827", // slate-900
             borderWidth: 2,
             tension: 0.35,
@@ -78,7 +83,7 @@ export default function UserGrowthChart() {
             pointBorderColor: "#111827",
             pointBorderWidth: 1.5,
             fill: "start",
-            // responsive gradient based on chart area
+            // Responsive gradient based on chart area
             backgroundColor: (context) => {
               const { chart } = context;
               const { ctx, chartArea } = chart;
@@ -129,10 +134,11 @@ export default function UserGrowthChart() {
       },
     });
 
+    // Cleanup on component unmount or year change
     return () => {
       chartRef.current && chartRef.current.destroy();
     };
-  }, [year, dataByYear]);
+  }, [year, chartData]); // Re-run effect when `year` or `chartData` changes
 
   return (
     <div className="rounded-2xl border bg-gray-50 p-4 shadow-sm">
@@ -151,7 +157,13 @@ export default function UserGrowthChart() {
 
       {/* Chart area */}
       <div className="h-64 md:h-72">
-        <canvas ref={canvasRef} />
+        {isLoading ? (
+          <p>Loading...</p>
+        ) : error ? (
+          <p>Error loading data</p>
+        ) : (
+          <canvas ref={canvasRef} />
+        )}
       </div>
 
       <div className="mt-2 text-center text-sm text-gray-500">◌ {year}</div>

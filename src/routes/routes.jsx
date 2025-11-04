@@ -20,13 +20,12 @@ import ManageOrderTable from "../page/manageOrder/ManageOrderTable";
 import ProductsPage from "../page/OldCrisis/ProductPage";
 import Templates from "../page/templates/Templates";
 import NewsTable from "../page/News/NewTable";
+import ProfilePage from "../component/Main/Profile/ProfilePage";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: (
-      <MainLayout />
-    ),
+    element: <MainLayout />,
     errorElement: <h1>Error</h1>,
     children: [
       {
@@ -36,34 +35,38 @@ const router = createBrowserRouter([
       {
         path: "users",
         element: <UsersPage />,
-      }, 
+      },
       {
         path: "categories",
         element: <CategoryPage />,
-      }, 
+      },
       {
         path: "messages",
         element: <ChatLayout />,
-      }, 
+      },
       {
         path: "orders",
         element: <ManageOrderTable />,
-      }, 
+      },
       {
         path: "oldcrisis",
         element: <ProductsPage />,
-      }, 
+      },
       {
         path: "templates",
         element: <Templates />,
-      }, 
+      },
       {
         path: "news",
         element: <NewsTable />,
-      }, 
+      },
       {
         path: "settings",
         element: <SettingsPage />,
+      },
+      {
+        path: "settings/profile",
+        element: <ProfilePage />,
       },
       {
         path: "settings/privacy-policy",
@@ -84,9 +87,10 @@ const router = createBrowserRouter([
       {
         path: "settings/about-us",
         element: <AboutUsPage />,
-      },{
+      },
+      {
         path: "/settings/edit-about-us/:id",
-        element: <EditAboutUs/>
+        element: <EditAboutUs />,
       },
     ],
   },
@@ -99,7 +103,7 @@ const router = createBrowserRouter([
         element: <SignIn />,
       },
       {
-        path: "forget-password",
+        path: "forgot-password",
         element: <ForgetPassword />,
       },
       {
