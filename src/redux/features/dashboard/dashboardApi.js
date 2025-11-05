@@ -1,4 +1,5 @@
 import { baseApi } from "../../baseApi/baseApi";
+import { tagTypes } from "../../tagTypes";
 
 const dashboardApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -7,6 +8,13 @@ const dashboardApi = baseApi.injectEndpoints({
         url: "/payments/total-earning",
         method: "GET",
       }),
+    }),
+    getNewOrder: builder.query({
+      query: () => ({
+        url: "/orders/pending",
+        method: "GET",
+      }),
+      invalidatesTags: [tagTypes.orders],
     }),
     getIncomeRatio: builder.query({
       query: (year) => ({
@@ -17,4 +25,4 @@ const dashboardApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { useGetDashboardStatusQuery, useGetIncomeRatioQuery } = dashboardApi;
+export const { useGetDashboardStatusQuery, useGetIncomeRatioQuery, useGetNewOrderQuery } = dashboardApi;

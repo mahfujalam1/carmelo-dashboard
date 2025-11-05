@@ -1,6 +1,7 @@
 // src/components/NewOrdersTable.jsx
 import React, { useMemo, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
+import { useGetNewOrderQuery } from "../../../redux/features/dashboard/dashboardApi";
 
 const STATUS_OPTIONS = [
   "Pending",
@@ -17,105 +18,80 @@ const STATUS_STYLES = {
   Shipped: "bg-green-100 text-green-700 border-green-200",
 };
 
-function StatusSelect({ value, onChange }) {
-  const color =
-    STATUS_STYLES[value] || "bg-gray-100 text-gray-700 border-gray-200";
-  return (
-    <div className="relative inline-block">
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className={`appearance-none rounded-full border px-3 py-1.5 pr-8 text-xs font-medium ${color} cursor-pointer focus:outline-none focus:ring-2 focus:ring-gray-200`}
-      >
-        {STATUS_OPTIONS.map((s) => (
-          <option key={s} value={s}>
-            {s}
-          </option>
-        ))}
-      </select>
-      {/* chevron */}
-      <svg
-        className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500"
-        viewBox="0 0 20 20"
-        fill="currentColor"
-      >
-        <path d="M5.25 7.5 10 12.25 14.75 7.5h-9.5z" />
-      </svg>
-    </div>
-  );
-}
-
 export default function NewOrdersTable() {
+  const { data: newOrdersData } = useGetNewOrderQuery();
+  console.log("orders data=>", newOrdersData?.data);
+  const data = newOrdersData?.data || [];
   // demo data (API এলে এখানে বসিয়ে দিও)
-  const data = useMemo(
-    () => [
-      {
-        id: 1,
-        orderNo: "#86475",
-        email: "damiemail@gmail.com",
-        items: 4,
-        price: 2415,
-        tid: "65235465",
-        delivery: "05-12-25",
-        status: "Pending",
-      },
-      {
-        id: 2,
-        orderNo: "#86476",
-        email: "damiemail@gmail.com",
-        items: 5,
-        price: 2415,
-        tid: "65235465",
-        delivery: "05-12-25",
-        status: "Pending",
-      },
-      {
-        id: 3,
-        orderNo: "#86477",
-        email: "damiemail@gmail.com",
-        items: 1,
-        price: 2415,
-        tid: "65235465",
-        delivery: "05-12-25",
-        status: "Pending",
-      },
-      {
-        id: 4,
-        orderNo: "#86478",
-        email: "damiemail@gmail.com",
-        items: 3,
-        price: 2415,
-        tid: "65235465",
-        delivery: "05-12-25",
-        status: "Packing",
-      },
-      {
-        id: 5,
-        orderNo: "#86479",
-        email: "damiemail@gmail.com",
-        items: 2,
-        price: 2415,
-        tid: "65235465",
-        delivery: "05-12-25",
-        status: "Processing",
-      },
-      {
-        id: 6,
-        orderNo: "#86480",
-        email: "damiemail@gmail.com",
-        items: 6,
-        price: 2415,
-        tid: "65235465",
-        delivery: "05-12-25",
-        status: "Shipping",
-      },
-    ],
-    []
-  );
+  // const data = useMemo(
+  //   () => [
+  //     {
+  //       id: 1,
+  //       orderNo: "#86475",
+  //       email: "damiemail@gmail.com",
+  //       items: 4,
+  //       price: 2415,
+  //       tid: "65235465",
+  //       delivery: "05-12-25",
+  //       status: "Pending",
+  //     },
+  //     {
+  //       id: 2,
+  //       orderNo: "#86476",
+  //       email: "damiemail@gmail.com",
+  //       items: 5,
+  //       price: 2415,
+  //       tid: "65235465",
+  //       delivery: "05-12-25",
+  //       status: "Pending",
+  //     },
+  //     {
+  //       id: 3,
+  //       orderNo: "#86477",
+  //       email: "damiemail@gmail.com",
+  //       items: 1,
+  //       price: 2415,
+  //       tid: "65235465",
+  //       delivery: "05-12-25",
+  //       status: "Pending",
+  //     },
+  //     {
+  //       id: 4,
+  //       orderNo: "#86478",
+  //       email: "damiemail@gmail.com",
+  //       items: 3,
+  //       price: 2415,
+  //       tid: "65235465",
+  //       delivery: "05-12-25",
+  //       status: "Packing",
+  //     },
+  //     {
+  //       id: 5,
+  //       orderNo: "#86479",
+  //       email: "damiemail@gmail.com",
+  //       items: 2,
+  //       price: 2415,
+  //       tid: "65235465",
+  //       delivery: "05-12-25",
+  //       status: "Processing",
+  //     },
+  //     {
+  //       id: 6,
+  //       orderNo: "#86480",
+  //       email: "damiemail@gmail.com",
+  //       items: 6,
+  //       price: 2415,
+  //       tid: "65235465",
+  //       delivery: "05-12-25",
+  //       status: "Shipping",
+  //     },
+  //   ],
+  //   []
+  // );
 
   // local status state (rowId -> status)
   const [statusMap, setStatusMap] = useState(
-    Object.fromEntries(data.map((r) => [r.id, r.status]))
+    Object.fromEntries(data.map((r) => [r._id, r.status]))
   );
   const setRowStatus = (rowId, status) =>
     setStatusMap((prev) => ({ ...prev, [rowId]: status }));
@@ -152,38 +128,41 @@ export default function NewOrdersTable() {
               <th className="hidden lg:table-cell px-4 py-3 font-medium">
                 T.ID
               </th>
-              <th className="hidden md:table-cell px-4 py-3 font-medium text-center">
-                Delivery Time
-              </th>
               <th className="px-4 py-3 font-medium text-center">Status</th>
             </tr>
           </thead>
 
           <tbody className="divide-y">
-            {data.map((row) => (
-              <tr key={row.id} className="hover:bg-gray-50/60">
-                <td className="whitespace-nowrap px-4 py-3 font-semibold text-gray-800">
-                  {row.orderNo}
-                </td>
-                <td className="px-4 py-3">{row.email}</td>
-                <td className="hidden md:table-cell px-4 py-3 text-center tabular-nums">
-                  {String(row.items).padStart(2, "0")}
-                </td>
-                <td className="hidden md:table-cell px-4 py-3 text-right tabular-nums">
-                  {currency(row.price)}
-                </td>
-                <td className="hidden lg:table-cell px-4 py-3">{row.tid}</td>
-                <td className="hidden md:table-cell px-4 py-3 text-center">
-                  {row.delivery}
-                </td>
-                <td className="px-4 py-3 text-center">
-                  <StatusSelect
-                    value={statusMap[row.id]}
-                    onChange={(val) => setRowStatus(row.id, val)}
-                  />
-                </td>
-              </tr>
-            ))}
+            {data.map((row) => {
+              console.log(row?._id);
+              return (
+                <tr key={row?._id} className="hover:bg-gray-50/60">
+                  <td className="whitespace-nowrap px-4 py-3 font-semibold text-gray-800">
+                    #{row?._id}
+                  </td>
+                  <td className="px-4 py-3">{row?.user?.email}</td>
+                  <td className="hidden md:table-cell px-4 py-3 text-center tabular-nums">
+                    {String(row.items?.length)}
+                  </td>
+                  <td className="hidden md:table-cell px-4 py-3 text-right tabular-nums">
+                    {currency(row.total)}
+                  </td>
+                  <td className="hidden lg:table-cell px-4 py-3">
+                    {row?.paymentStatus
+                      ? "unpaid"
+                      : "N/A" && row?.paymentStatus
+                      ? "paid"
+                      : row?.transactionID}
+                  </td>
+
+                  <td className="text-center">
+                    <span className="px-2 py-1 text-center bg-gray-200 rounded-full">
+                      {row?.status ? row?.status : "N/A"}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
