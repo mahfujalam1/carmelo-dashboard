@@ -25,7 +25,7 @@ const templates = baseApi.injectEndpoints({
       query: (id) => {
         console.log(id)
         return {
-          url: `/templates?id=${id}`,
+          url: `/templates/${id}`,
           method: "DELETE",
         };
       },

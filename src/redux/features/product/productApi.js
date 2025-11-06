@@ -1,16 +1,17 @@
 import { baseApi } from "../../baseApi/baseApi";
+import { tagTypes } from "../../tagTypes";
 
 const productApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     addProduct: builder.mutation({
       query: (formdata) => {
         return {
-          url: "/admin/product",
+          url: "/products",
           method: "POST",
           body: formdata,
         };
       },
-      invalidatesTags: ["Products"],
+      invalidatesTags: [tagTypes.products],
     }),
     getAllProducts: builder.query({
       query: () => ({

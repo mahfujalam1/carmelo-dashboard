@@ -1,5 +1,7 @@
 import { X } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useGetCategoriesQuery } from "../../../redux/features/categories/categories";
+import { useAddProductMutation } from "../../../redux/features/product/productApi";
 
 export default function ProductModal({
   onClose,
@@ -9,20 +11,25 @@ export default function ProductModal({
 }) {
   const [name, setName] = useState("");
   const [title, setTitle] = useState("");
-  const [type, setType] = useState("");
   const [category, setCategory] = useState("Foods");
   const [price, setPrice] = useState("");
   const [size, setSize] = useState("");
+  const [sizes, setSizes] = useState([]);
   const [condition, setCondition] = useState("");
   const [description, setDescription] = useState("");
   const [files, setFiles] = useState([null, null, null]);
+
+  const { data: categoriesData, isLoading: isCategoriesLoading } =
+    useGetCategoriesQuery();
+  const categories = categoriesData?.data || [];
+
+  const [addProduct] = useAddProductMutation(); // Assuming a hook to add a product
 
   // 🔹 Preload existing data when editing
   useEffect(() => {
     if (initialData) {
       setName(initialData.name || "");
       setTitle(initialData.title || "");
-      setType(initialData.type || "");
       setCategory(initialData.category || "Foods");
       setPrice(initialData.price?.toString() || "");
       setSize(initialData.size || "");
@@ -46,23 +53,49 @@ export default function ProductModal({
     setFiles(newFiles);
   };
 
+  // 🔹 Handle adding size input
+  const handleAddSize = () => {
+    if (size && !sizes.includes(size)) {
+      setSizes((prevSizes) => [...prevSizes, size]);
+      setSize("");
+    }
+  };
+
+  // 🔹 Handle removing a size
+  const handleRemoveSize = (sizeToRemove) => {
+    setSizes(sizes.filter((s) => s !== sizeToRemove));
+  };
+
   // 🔹 Handle submit
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const product = {
-      id: initialData?.id || "#" + Math.floor(Math.random() * 100000),
-      title,
-      type:name,
-      category,
-      size,
-      condition,
-      price: parseFloat(price),
-      description,
-      images: files.filter(Boolean).map((f) => f.url),
-    };
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("name", name);
+    formData.append("category", category);
+    formData.append("price", price);
+    formData.append("condition", condition);
+    formData.append("description", description);
 
-    onSave(product);
+    // Append files
+    files.filter(Boolean).forEach((file, index) => {
+      formData.append(`images[${index}]`, file.file);
+    });
+
+    // Append sizes as an array
+    sizes.forEach((size) => {
+      formData.append("sizes[]", size);
+    });
+
+    try {
+      // Send data to the backend
+      await addProduct(formData).unwrap();
+      onSave(); // Trigger the onSave callback after saving the product
+      onClose(); // Close the modal
+    } catch (error) {
+      console.error("Error adding product:", error);
+    }
   };
 
   return (
@@ -133,9 +166,10 @@ export default function ProductModal({
 
             {/* Right: Product Info */}
             <div className="space-y-4">
+              {/* Product Title */}
               <div>
                 <label className="block text-sm font-medium">
-                  Product Title
+                  Product Name
                 </label>
                 <input
                   type="text"
@@ -147,60 +181,72 @@ export default function ProductModal({
                 />
               </div>
 
+              {/* Product Type */}
               <div>
                 <label className="block text-sm font-medium">
-                  Product Type
+                  Product Title
                 </label>
                 <input
                   type="text"
-                  value={type}
+                  value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="type here..."
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                 />
               </div>
 
+              {/* Size */}
               <div>
-                <label className="block text-sm font-medium">Type Name</label>
+                <label className="block text-sm font-medium">
+                  Product Size
+                </label>
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    value={size}
+                    onChange={(e) => setSize(e.target.value)}
+                    placeholder="e.g. S, M, L"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddSize}
+                    className="px-3 py-2 bg-gray-800 text-white rounded-lg"
+                  >
+                    Add
+                  </button>
+                </div>
+                {sizes.length > 0 && (
+                  <ul className="mt-2">
+                    {sizes.map((size, index) => (
+                      <li key={index} className="flex items-center space-x-2">
+                        <span>{size}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveSize(size)}
+                          className="text-red-600"
+                        >
+                          Remove
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              {/* Price */}
+              <div>
+                <label className="block text-sm font-medium">Price</label>
                 <input
-                  type="text"
-                  value={type}
-                  onChange={(e) => setType(e.target.value)}
-                  placeholder="e.g. T–Shirt"
+                  type="number"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  placeholder="$100"
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium">Price</label>
-                  <input
-                    type="number"
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
-                    placeholder="$100"
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium">
-                    Product Size
-                  </label>
-                  <select
-                    value={size}
-                    onChange={(e) => setSize(e.target.value)}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                  >
-                    <option value="">Select</option>
-                    <option value="S">S</option>
-                    <option value="M">M</option>
-                    <option value="L">L</option>
-                    <option value="XL">XL</option>
-                  </select>
-                </div>
-              </div>
-
+              {/* Category */}
               <div>
                 <label className="block text-sm font-medium">
                   Select Category
@@ -210,14 +256,21 @@ export default function ProductModal({
                   onChange={(e) => setCategory(e.target.value)}
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                 >
-                  <option value="Foods">Foods</option>
-                  <option value="Drinks">Drinks</option>
-                  <option value="Accessories">Accessories</option>
+                  {isCategoriesLoading ? (
+                    <option>Loading...</option>
+                  ) : (
+                    categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))
+                  )}
                 </select>
               </div>
             </div>
           </div>
 
+          {/* Description */}
           <div>
             <label className="block text-sm font-medium mb-1">
               Description
@@ -231,6 +284,7 @@ export default function ProductModal({
             />
           </div>
 
+          {/* Condition */}
           <div>
             <label className="block text-sm font-medium mb-1">
               Product Condition
@@ -244,6 +298,7 @@ export default function ProductModal({
             />
           </div>
 
+          {/* Submit Button */}
           <div className="flex justify-center gap-4 pt-4">
             <button
               type="submit"
