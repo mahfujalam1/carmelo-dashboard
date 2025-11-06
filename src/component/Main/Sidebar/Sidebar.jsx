@@ -16,7 +16,6 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
-import ConfirmModal from "../../ui/Modal/ConfirmModal";
 import { toast } from "sonner";
 
 const navItems = [
@@ -163,17 +162,7 @@ export default function Sidebar() {
           </div>
         </nav>
       </aside>
-
-      <ConfirmModal
-        open={confirmOpen}
-        onClose={() => setConfirmOpen(false)}
-        onConfirm={handleLogout}
-        from="right"
-        title="You want to logout?"
-        message="Are you sure you want to logout?"
-        confirmText="Yes"
-        cancelText="No"
-      />
+      {/* confirm modal */}
     </>
   );
 }

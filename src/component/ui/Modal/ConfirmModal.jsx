@@ -1,5 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import CategoryModal from "./CategoryModal";
 
 /** Simple Yes/No confirmation modal (re-uses CategoryModal) */
 export default function ConfirmModal({
@@ -15,7 +14,7 @@ export default function ConfirmModal({
 
 
   return (
-    <CategoryModal open={open} onClose={onClose} title={title} from={from}>
+    <div open={open} onClose={onClose} title={title} from={from}>
       <p className="px-1 pb-4 text-center text-gray-700">{message}</p>
       <div className="flex items-center justify-center gap-3">
         <button
@@ -31,6 +30,6 @@ export default function ConfirmModal({
           {cancelText}
         </button>
       </div>
-    </CategoryModal>
+    </div>
   );
 }

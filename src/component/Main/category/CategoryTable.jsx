@@ -20,7 +20,7 @@ export default function CategoryTable({ rows = [], onEdit, onDelete }) {
               <td className="px-4 py-3">{idx + 1}</td>
               <td className="px-4 py-3">
                 <img
-                  src={'/public/Foods.png'}
+                  src={r?.image}
                   alt={r.name}
                   className="h-10 w-10 object-cover  "
                 />

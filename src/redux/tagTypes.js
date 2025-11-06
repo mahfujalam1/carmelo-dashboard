@@ -4,7 +4,7 @@ export const tagTypes = {
   status: "Status",
   products: "Products",
   messages: "Message",
-  templates: "Template",
+  templates: "Templates",
   payments: "Payments",
   news: "News",
   orders: "Order",

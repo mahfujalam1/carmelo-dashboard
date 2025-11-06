@@ -26,6 +26,7 @@ export default function CategoryForm({
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit?.({ name: name.trim(), imageUrl: preview, file });
+    console.log(first)
   };
 
   return (
