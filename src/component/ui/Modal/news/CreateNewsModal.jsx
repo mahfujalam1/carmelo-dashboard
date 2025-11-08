@@ -1,65 +1,69 @@
-// src/component/ui/Modal/NewsModal.jsx
+// src/component/ui/Modal/CreateNewsModal.jsx
 import React, { useState, useEffect } from "react";
 import { Modal } from "antd";
 import { Image as ImageIcon } from "lucide-react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { toast } from "sonner";
+import { useCreateNewsMutation } from "../../../../redux/features/news/news";
 
-// Props:
-// - editingItem: { id, name, description, image }
-// - onSave({ name, description, imageFile })
-const NewsModal = ({ open, onClose, onSave, editingItem }) => {
+export default function CreateNewsModal({ open, onClose }) {
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
   const [previewUrl, setPreviewUrl] = useState("");
   const [imageFile, setImageFile] = useState(null);
 
+  const [addNews, { isLoading: creating }] = useCreateNewsMutation();
+
   useEffect(() => {
-    if (editingItem) {
-      setName(editingItem.name || "");
-      setDesc(editingItem.description || "");
-      setPreviewUrl(editingItem.image || "");
-      setImageFile(null); // keep null until user selects a new file
-    } else {
+    if (!open) {
       setName("");
       setDesc("");
       setPreviewUrl("");
       setImageFile(null);
     }
-  }, [editingItem, open]);
+  }, [open]);
 
-  const handleSubmit = () => {
-    if (!name) {
-      toast.warning("Please provide a title.");
-      return;
+  const buildFormData = () => {
+    const fd = new FormData();
+    fd.append("title", name);
+    fd.append("content", desc);
+    if (imageFile) fd.append("headerImage", imageFile);
+    return fd;
+  };
+
+  const handleSubmit = async () => {
+    if (!name) return toast.warning("Title দরকার।");
+    if (!imageFile) return toast.warning("Image দরকার।");
+
+    try {
+      await addNews(buildFormData()).unwrap();
+      toast.success("News created");
+      onClose?.();
+    } catch (e) {
+      console.error(e);
+      toast.error("Create failed");
     }
-    // image optional for edit. for create, you may enforce it here if needed.
-    onSave({
-      name, // will be mapped to title on parent
-      description: desc, // will be mapped to content on parent
-      imageFile, // File or null
-    });
   };
 
   const handleFileChange = (e) => {
-    const selected = e.target.files && e.target.files[0];
-    if (selected) {
-      setImageFile(selected);
-      setPreviewUrl(URL.createObjectURL(selected));
-    }
+    const f = e.target.files?.[0];
+    if (!f) return;
+    setImageFile(f);
+    setPreviewUrl(URL.createObjectURL(f));
   };
 
   return (
     <Modal
       open={open}
-      onCancel={onClose}
+      onCancel={creating ? undefined : onClose}
       footer={null}
       centered
       width={800}
-      title={editingItem ? "Edit News" : "Create News"}
+      title="Create News"
       bodyStyle={{ padding: "2rem" }}
       destroyOnClose
+      maskClosable={!creating}
     >
       {/* Upload Image */}
       <div className="mb-4">
@@ -82,10 +86,9 @@ const NewsModal = ({ open, onClose, onSave, editingItem }) => {
             accept="image/*"
             className="absolute inset-0 opacity-0 cursor-pointer"
             onChange={handleFileChange}
+            disabled={creating}
           />
         </label>
-        {/* If you want image mandatory for create, uncomment: */}
-        {/* {!editingItem && !imageFile && <p className="text-xs text-red-500 mt-1">Image is required.</p>} */}
       </div>
 
       {/* Title */}
@@ -95,6 +98,7 @@ const NewsModal = ({ open, onClose, onSave, editingItem }) => {
         value={name}
         onChange={(e) => setName(e.target.value)}
         className="w-full mb-4 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-1 focus:ring-gray-500 outline-none"
+        disabled={creating}
       />
 
       {/* Content */}
@@ -104,25 +108,26 @@ const NewsModal = ({ open, onClose, onSave, editingItem }) => {
         onChange={setDesc}
         placeholder="Write content..."
         className="mb-6"
+        readOnly={creating}
       />
 
       {/* Buttons */}
       <div className="flex justify-center gap-4">
         <button
           onClick={handleSubmit}
-          className="rounded-md bg-gray-800 px-8 py-2 text-sm font-medium text-white hover:bg-gray-900 transition"
+          className="rounded-md bg-gray-800 px-8 py-2 text-sm font-medium text-white hover:bg-gray-900 transition disabled:opacity-60"
+          disabled={creating}
         >
-          {editingItem ? "Update" : "Save"}
+          {creating ? "Saving..." : "Save"}
         </button>
         <button
           onClick={onClose}
-          className="rounded-md border border-gray-300 px-8 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition"
+          className="rounded-md border border-gray-300 px-8 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition disabled:opacity-60"
+          disabled={creating}
         >
           Cancel
         </button>
       </div>
     </Modal>
   );
-};
-
-export default NewsModal;
+}

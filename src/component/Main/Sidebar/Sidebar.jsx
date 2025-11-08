@@ -70,14 +70,13 @@ export default function Sidebar() {
       <aside
         className={`fixed left-0 top-0 z-50 h-full w-72 border-r bg-white shadow-sm transition-transform duration-300 ease-in-out
         ${mobileOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0`}
-        aria-label="Sidebar"
       >
         {/* Header */}
         <div className="flex items-center gap-3  px-4 py-4">
           {/* Close (mobile) */}
           <button
             onClick={() => setMobileOpen(false)}
-            className="ml-auto inline-flex rounded-lg p-2 hover:bg-gray-100 lg:hidden"
+            className="ml-auto inline-flex rounded-lg p-2 hover:bg-gray-100 lg:hidden"  
             aria-label="Close menu"
           >
             <X className="h-5 w-5" />

@@ -13,9 +13,9 @@ const MainLayout = () => {
     <main className="w-full flex bg-white min-h-screen">
       <Sidebar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
       {/* Main Content */}
-      <section className="w-full h-full md:ml-[200px] lg:ml-[250px] xl:ml-[280px] py-10 px-4">
-        <div className=" px-4">
-        <Outlet />
+      <section className="w-full h-full sm:ml-0  lg:ml-[250px] xl:ml-[280px] py-10 px-4">
+        <div className="px-4">
+          <Outlet />
         </div>
       </section>
 

@@ -21,9 +21,21 @@ const userApi = baseApi.injectEndpoints({
     }),
 
     getAllUsers: builder.query({
-      query: () => ({
-        url: `/users`,
+      query: ({page, limit}) => ({
+        url: `/users?page=${page}&limit=${limit}`,
         method: "GET",
+      }),
+    }),
+    getSingleUser: builder.query({
+      query: (id) => ({
+        url: `/users/${id}`,
+        method: "GET",
+      }),
+    }),
+    deleteUser: builder.mutation({
+      query: (id) => ({
+        url: `/users/${id}`,
+        method: "DELETE",
       }),
     }),
     usersGrowth: builder.query({
@@ -35,4 +47,4 @@ const userApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { useGetAllAdminQuery, useGetAllUsersQuery, useUsersGrowthQuery } = userApi;
+export const { useGetAllAdminQuery, useGetAllUsersQuery, useUsersGrowthQuery, useDeleteUserMutation } = userApi;

@@ -19,8 +19,8 @@ import ChatLayout from "../page/chat/chat/ChatLayout";
 import ManageOrderTable from "../page/manageOrder/ManageOrderTable";
 import ProductsPage from "../page/OldCrisis/ProductPage";
 import Templates from "../page/templates/Templates";
-import NewsTable from "../page/News/NewTable";
 import ProfilePage from "../component/Main/Profile/ProfilePage";
+import NewsTable from "../page/News/NewsTable";
 
 const router = createBrowserRouter([
   {

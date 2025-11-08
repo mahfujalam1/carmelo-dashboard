@@ -1,8 +1,13 @@
+// src/component/ui/Modal/NewsViewModal.jsx
 import React from "react";
 import { Modal } from "antd";
+import { useGetSingleNewsQuery } from "../../../redux/features/news/news";
 
 const NewsViewModal = ({ open, onClose, item }) => {
-  if (!item) return null;
+  const {data} = useGetSingleNewsQuery(item?.id, {
+    skip: !open || !item?.id,
+  });
+  const newsData = data?.data || null;
 
   return (
     <Modal
@@ -13,18 +18,19 @@ const NewsViewModal = ({ open, onClose, item }) => {
       width={800}
       title="View News"
       bodyStyle={{ padding: "2rem" }}
+      destroyOnClose
     >
       <div className="space-y-4">
-        <img
-          src={item.image}
-          alt="news"
-          className="w-full h-60 object-cover rounded-lg border"
-        />
-        <h3 className="text-lg font-semibold">{item.name}</h3>
-        <div
-          className="text-gray-700 text-sm leading-relaxed"
-          dangerouslySetInnerHTML={{ __html: item.description }}
-        />
+        {newsData?.headerImage ? (
+          <img
+            src={newsData?.headerImage}
+            alt="news"
+            className="w-full h-60 object-cover rounded-lg border"
+          />
+        ) : null}
+        <h3 className="text-lg font-semibold">{newsData?.title}</h3>
+        <div className="text-gray-700 text-sm" />
+        {newsData?.content}
       </div>
     </Modal>
   );

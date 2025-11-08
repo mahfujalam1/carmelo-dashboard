@@ -1,9 +1,25 @@
 /* eslint-disable no-unused-vars */
-import { useEffect, useState } from "react";
-import { ConfigProvider, Modal, Table, Form, Input, DatePicker } from "antd";
+import { useState } from "react";
+import {
+  ConfigProvider,
+  Modal,
+  Table,
+  Form,
+  Input,
+  DatePicker,
+  message,
+  Avatar,
+  Button,
+  Popconfirm,
+} from "antd";
 import moment from "moment";
-import { useGetAllUsersQuery } from "../../../redux/features/user/userApi";
 import { IoIosSearch, IoMdInformationCircleOutline } from "react-icons/io";
+import { MdDelete } from "react-icons/md";
+import {
+  useDeleteUserMutation,
+  useGetAllUsersQuery,
+} from "../../../redux/features/user/userApi";
+import { Eye, Trash2 } from "lucide-react";
 
 const { Item } = Form;
 
@@ -12,161 +28,123 @@ const Users = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalViewOpen, setIsModalViewOpen] = useState(false);
-  const [allUser, setAllUser] = useState([]);
   const [user, setUser] = useState(null);
-  const { data, isFetching, isError, error } = useGetAllUsersQuery();
+
+  const { data, isFetching, isError } = useGetAllUsersQuery({
+    page: currentPage,
+    limit: 25,
+  });
+  const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
+  console.log(data);
 
   const handleView = (record) => {
     setUser(record);
     setIsModalViewOpen(true);
   };
 
-  const [allUsers, setAllUsers] = useState([
-    {
-      id: 1,
-      accountID: 2010,
-      firstName: "John Smith",
-      lastName: "Doe",
-      email: "johndoe@example.com",
-      address_line1: "123 Main St, Springfield",
-      image: { url: "https://randomuser.me/api/portraits/men/1.jpg" },
-      phone: "123-456-7890",
-      createdAt: "2024-01-01T10:00:00",
-      status: "Only Registered",
-      block: false,
-    },
-    {
-      id: 2,
-      accountID: 2011,
-      firstName: "Jane Smith",
-      lastName: "Smith",
-      email: "janesmith@example.com",
-      address_line1: "456 Elm St, Springfield",
-      image: { url: "https://randomuser.me/api/portraits/women/2.jpg" },
-      phone: "987-654-3210",
-      createdAt: "2024-02-01T14:30:00",
-      status: "Active",
-      block: true,
-    },
-    {
-      id: 3,
-      accountID: 2012,
-      firstName: "Alice Smith",
-      lastName: "Johnson",
-      email: "alicejohnson@example.com",
-      address_line1: "789 Oak St, Springfield",
-      image: { url: "https://randomuser.me/api/portraits/women/3.jpg" },
-      phone: "555-123-4567",
-      createdAt: "2024-03-15T09:00:00",
-      status: "Active",
-      block: false,
-    },
-    {
-      id: 4,
-      accountID: 2013,
-      firstName: "Bob Smith",
-      lastName: "Williams",
-      email: "bobwilliams@example.com",
-      address_line1: "101 Pine St, Springfield",
-      image: { url: "https://randomuser.me/api/portraits/men/2.jpg" },
-      phone: "555-987-6543",
-      createdAt: "2024-04-10T16:45:00",
-      status: "Only Registered",
-      block: true,
-    },
-    {
-      id: 5,
-      accountID: 2014,
-      firstName: "Charlie Smith",
-      lastName: "Brown",
-      email: "charliebrown@example.com",
-      address_line1: "202 Maple St, Springfield",
-      image: { url: "https://randomuser.me/api/portraits/men/3.jpg" },
-      phone: "555-654-3210",
-      createdAt: "2024-05-05T12:00:00",
-      status: "Active",
-      block: false,
-    },
-  ]);
+  const handleConfirmDelete = async (id) => {
+    console.log("deleted id=>",id)
+    try {
+      await deleteUser(id).unwrap();
+      message.success("User deleted successfully");
+    } catch (e) {
+      console.error(e);
+      message.error("Failed to delete user");
+    }
+  };
 
-  const dataSource = allUsers.map((user, index) => ({
-    id: user.id,
-    si: index + 1,
-    firstName: user?.firstName,
-    lastName: user?.lastName,
-    accountID: user?.accountID,
-    email: user?.email,
-    phone: user?.phone,
-    address_line1: user?.address_line1,
-    createdAt: user?.createdAt,
-    imageUrl: user?.image?.url,
-    status: user?.status,
-    block: user?.block,
-  }));
+  const dataSource =
+    data?.data?.users?.map((user, index) => ({
+      id: user._id,
+      si: index + 1 + (currentPage - 1) * 25,
+      fullName: user.fullName,
+      email: user.email,
+      phone: user.phone,
+      address: user.address,
+      createdAt: user.createdAt,
+      imageUrl: user.avatar,
+      accountID: user._id,
+      status: user.isDeleted ? "Deleted" : "Active",
+      block: user.isBlocked,
+    })) || [];
 
   const columns = [
     {
       title: "#SI",
       dataIndex: "si",
       key: "si",
+      width: 70,
       sorter: (a, b) => a.si - b.si,
     },
     {
-      title: "User Name",
-      dataIndex: "firstName",
-      key: "firstName",
-      sorter: (a, b) => a.firstName?.localeCompare(b.firstName),
-      render: (text) => text || "N/A",
+      title: "User Info",
+      key: "userInfo",
+      render: (_, record) => (
+        <div className="flex items-center space-x-3">
+          <img
+            src={record.imageUrl || "https://avatar.iran.liara.run/public/34"}
+            alt="profile"
+            className="w-10 h-10 rounded-full object-cover"
+          />
+          <div>
+            <p className="font-medium">{record.fullName || "N/A"}</p>
+            <p className="text-gray-500 text-sm">{record.phone || "N/A"}</p>
+          </div>
+        </div>
+      ),
+      sorter: (a, b) => a.fullName?.localeCompare(b.fullName),
     },
     {
       title: "Email",
       dataIndex: "email",
       key: "email",
       sorter: (a, b) => a.email?.localeCompare(b.email),
-      render: (text) => text || "N/A",
     },
     {
-      title: "Phone Number",
-      dataIndex: "phone",
-      key: "phone",
-      sorter: (a, b) => a.email?.localeCompare(b.email),
+      title: "Location",
+      dataIndex: "address",
+      key: "address",
+      sorter: (a, b) => a.address?.localeCompare(b.address),
       render: (text) => text || "N/A",
-    },
-    {
-      title: "Joined Date",
-      dataIndex: "createdAt",
-      key: "createdAt",
-      sorter: (a, b) => moment(a.createdAt).unix() - moment(b.createdAt).unix(),
-      render: (date) => (date ? moment(date).format("DD MMM YYYY") : "N/A"),
     },
     {
       title: "Action",
       key: "action",
-      render: (_, record) => {
-        return (
-          <div className="flex items-center space-x-4">
-            <IoMdInformationCircleOutline
-              size={22}
-              onClick={() => handleView(record)} // Trigger modal open
-            />
-          </div>
-        );
-      },
+      render: (_, record) => (
+        <div className="flex items-center space-x-4">
+          <Eye
+            size={16}
+            className="cursor-pointer text-gray-800"
+            onClick={() => handleView(record)}
+          />
+          <Popconfirm
+            title="Are you sure you want to delete?"
+            okText="Yes"
+            cancelText="No"
+            okButtonProps={{ danger: true, loading: isDeleting }}
+            onConfirm={(e) => {
+              e?.stopPropagation();
+              handleConfirmDelete(record.id);
+            }}
+            onCancel={(e) => e?.stopPropagation()}
+          >
+            <Button
+              danger
+              disabled={isDeleting}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </Popconfirm>
+        </div>
+      ),
     },
   ];
-
-  useEffect(() => {
-    if (isError && error) {
-      setAllUser([]);
-    } else if (data) {
-      setAllUser(data?.data?.attributes?.user?.results);
-    }
-  }, [data, isError, error]);
 
   return (
     <section>
       <div className="md:flex justify-between items-center py-6 mb-4">
-        <h1 className="text-2xl flex items-center font-semibold">All Users</h1>
+        <h1 className="text-2xl font-semibold">All Users</h1>
         <Form layout="inline" className="flex space-x-4">
           <Item name="date">
             <DatePicker
@@ -178,17 +156,23 @@ const Users = () => {
           <Item name="username">
             <Input
               className="rounded-md w-[70%] md:w-full border border-gray-600"
-              placeholder="User Name"
+              placeholder="Search by name or email"
               onChange={(e) => setSearchText(e.target.value)}
+              value={searchText}
             />
           </Item>
           <Item>
-            <button className="size-8 rounded-full flex justify-center items-center border-2">
+            <button
+              type="button"
+              onClick={() => setCurrentPage(1)}
+              className="size-8 rounded-full flex justify-center items-center border-2"
+            >
               <IoIosSearch className="size-5" />
             </button>
           </Item>
         </Form>
       </div>
+
       <ConfigProvider
         theme={{
           components: {
@@ -209,67 +193,52 @@ const Users = () => {
             onChange: setCurrentPage,
           }}
           scroll={{ x: "max-content" }}
-          responsive={true}
           columns={columns}
           dataSource={dataSource}
           rowKey="id"
-          // onRow={(record) => ({
-          //   onClick: () => handleView(record),
-          // })}
         />
       </ConfigProvider>
+
       <Modal
         open={isModalViewOpen}
-        onOk={() => setIsModalViewOpen(false)}
         onCancel={() => setIsModalViewOpen(false)}
         footer={null}
         centered
       >
-        <div className="text-black bg-primary">
+        <div className="text-black">
           <div className="p-5">
             <div className="flex items-center">
               <img
                 className="size-24 rounded-full"
-                src={`${user?.imageUrl}`}
+                src={user?.imageUrl || "https://via.placeholder.com/100"}
                 alt="Profile"
               />
-              <div>
-                <h1 className="text-start text-xl font-semibold my-2 ml-5">
-                  {user?.firstName} {user?.lastName}
+              <div className="ml-5">
+                <h1 className="text-xl font-semibold">
+                  {user?.fullName || "N/A"}
                 </h1>
-                <h1 className="text-start font-semibold  my-2 ml-5">
-                  I am Ui/Ux designer.{" "}
-                </h1>
-                <p className="text-start   my-2 ml-5">100 connections</p>
+                <p className="text-gray-500">{user?.email || "N/A"}</p>
+                <p className="text-gray-500">{user?.phone || "N/A"}</p>
               </div>
             </div>
-            <div className="flex justify-between py-3 border-b">
-              <p>Account ID :</p>
-              <p>{user?.accountID || "N/A"}</p>
-            </div>
-            <div className="flex justify-between py-3 border-b">
-              <p>First Name :</p>
-              <p>{user?.firstName || "N/A"}</p>
-            </div>
-            <div className="flex justify-between py-3 border-b">
-              <p>Last Name :</p>
-              <p>{user?.lastName || "N/A"}</p>
-            </div>
-            <div className="flex justify-between py-3 border-b">
-              <p>Email :</p>
-              <p>{user?.email || "N/A"}</p>
-            </div>
-            <div className="flex justify-between py-3 border-b">
-              <p>Date of Birth :</p>
-              <p>5050</p>
-            </div>
-            <div className="flex justify-between py-3 border-b">
-              <p>Gender :</p>
-              <p> male </p>
-            </div>
-            <div className="flex justify-between py-3 border-b">
-              <p>Joining date :</p>
-              <p>2002</p>
+
+            <div className="mt-4 space-y-2">
+              <div className="flex justify-between border-b py-2">
+                <p>Account ID:</p>
+                <p>{user?.accountID || "N/A"}</p>
+              </div>
+              <div className="flex justify-between border-b py-2">
+                <p>Address:</p>
+                <p>{user?.address || "N/A"}</p>
+              </div>
+              <div className="flex justify-between border-b py-2">
+                <p>Status:</p>
+                <p>{user?.status || "Active"}</p>
+              </div>
+              <div className="flex justify-between border-b py-2">
+                <p>Joining Date:</p>
+                <p>{moment(user?.createdAt).format("YYYY-MM-DD") || "N/A"}</p>
+              </div>
             </div>
           </div>
         </div>

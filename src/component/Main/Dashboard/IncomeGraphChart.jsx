@@ -46,7 +46,6 @@ export default function UserGrowthChart() {
   // Fetch dynamic data from the API based on the selected year
   const { data, isLoading, error } = useUsersGrowthQuery(year);
   const userData = data?.data || []; // Access the correct data structure
-  console.log("User Data: ", userData);
 
   // Process API data into months and totals
   const chartData = useMemo(() => {

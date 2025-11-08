@@ -6,12 +6,13 @@ import { useGetAllUsersQuery } from "../../../redux/features/user/userApi";
 // src/components/Status.jsx
 export default function Status() {
   const { data } = useGetDashboardStatusQuery();
-  const {data: users} = useGetAllUsersQuery()
-  const {data: categories} = useGetCategoriesQuery()
-  const templatesCount = useGetAllTemplatesQuery() 
+  const { data: users } = useGetAllUsersQuery({ page: 999999, limit: 1 });
+  const { data: categories } = useGetCategoriesQuery();
+  const templatesCount = useGetAllTemplatesQuery();
   const templatesCountData = templatesCount?.data?.data?.templates?.length || 0;
   const categoriesCount = categories?.data?.length || 0;
-  const userCount = users?.data?.users?.length || 0;
+  const userCount = users?.data?.total || 0;
+  console.log(users);
   const earning = data?.data.total || 0;
 
   const stats = [
@@ -20,8 +21,6 @@ export default function Status() {
     { label: "Total Earning", value: earning, currency: "USD" },
     { label: "Total Template", value: templatesCountData },
   ];
-
-  
 
   const format = (s) =>
     s.currency
@@ -39,7 +38,9 @@ export default function Status() {
           key={s.label}
           className="rounded-2xl border bg-gray-100 p-6 text-center shadow-sm py-10"
         >
-          <div className="text-5xl text-gray-600 font-semibold tabular-nums">{format(s)}</div>
+          <div className="text-5xl text-gray-600 font-semibold tabular-nums">
+            {format(s)}
+          </div>
           <div className="mt-2 text-lg text-gray-600">{s.label}</div>
         </div>
       ))}
