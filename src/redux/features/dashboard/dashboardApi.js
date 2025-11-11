@@ -11,7 +11,7 @@ const dashboardApi = baseApi.injectEndpoints({
     }),
     getNewOrder: builder.query({
       query: () => ({
-        url: "/orders/pending",
+        url: "/orders/processing",
         method: "GET",
       }),
       invalidatesTags: [tagTypes.orders],
