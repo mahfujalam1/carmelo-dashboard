@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-import { useLoginMutation } from "../../../redux/features/auth/authApi";
+import { useGetMyProfileQuery, useLoginMutation } from "../../../redux/features/auth/authApi";
 
 const SignIn = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -9,6 +9,8 @@ const SignIn = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const [login] = useLoginMutation();
+  const {data:userData} = useGetMyProfileQuery()
+  console.log(userData?.data?._id)
 
   // submit e form data collect
   const handleSubmit = async (e) => {
@@ -26,7 +28,9 @@ const SignIn = () => {
       const token = result.data?.token || result.data?.data?.accessToken;
       if (token) {
         localStorage.setItem("token", token);
+        localStorage.setItem("userId", userData?.data?._id);
       }
+
       setIsLoading(false);
       navigate("/");
     } else {

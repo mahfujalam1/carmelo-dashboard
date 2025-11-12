@@ -8,6 +8,7 @@ export const tagTypes = {
   payments: "Payments",
   news: "News",
   orders: "Order",
+  chat: "Chat",
   dashboard: "Dashboard",
 };
 
@@ -20,5 +21,6 @@ export const tagTypesList = [
   tagTypes.templates,
   tagTypes.news,
   tagTypes.orders,
+  tagTypes.chat,
   tagTypes.dashboard,
 ];

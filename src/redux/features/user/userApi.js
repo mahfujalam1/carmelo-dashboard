@@ -21,7 +21,7 @@ const userApi = baseApi.injectEndpoints({
     }),
 
     getAllUsers: builder.query({
-      query: ({page, limit}) => ({
+      query: ({ page, limit }) => ({
         url: `/users?page=${page}&limit=${limit}`,
         method: "GET",
       }),
@@ -30,6 +30,20 @@ const userApi = baseApi.injectEndpoints({
       query: (id) => ({
         url: `/users/${id}`,
         method: "GET",
+      }),
+    }),
+    udpateMyProfile: builder.mutation({
+      query: (data) => ({
+        url: "/users",
+        method: "PATCH",
+        body: data,
+      }),
+    }),
+    changePassword: builder.mutation({
+      query: (data) => ({
+        url: "/users/password",
+        method: "PATCH",
+        body: data,
       }),
     }),
     deleteUser: builder.mutation({
@@ -47,4 +61,11 @@ const userApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { useGetAllAdminQuery, useGetAllUsersQuery, useUsersGrowthQuery, useDeleteUserMutation } = userApi;
+export const {
+  useGetAllAdminQuery,
+  useGetAllUsersQuery,
+  useUsersGrowthQuery,
+  useDeleteUserMutation,
+  useUdpateMyProfileMutation,
+  useChangePasswordMutation,
+} = userApi;

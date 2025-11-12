@@ -8,7 +8,8 @@ export const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    const socketInstance = io("http://10.10.20.44:3333", {
+    const userId = localStorage.getItem("userId")
+    const socketInstance = io(`http://10.10.20.44:3333?userId=${userId}`, {
       auth: {
         token: token || "",
       },

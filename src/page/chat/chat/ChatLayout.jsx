@@ -4,10 +4,9 @@ import ChatSiderbar from "./chat-interface-components/ChatSiderbar";
 
 function ChatLayout() {
   const [selectedUser, setSelectedUser] = React.useState(null);
-  console.log("=============", selectedUser);
   return (
     <div>
-      <div className="flex gap-1 h-full">
+      <div className="flex gap-1 max-h-[calc(100vh-100px)] overflow-hidden">
         <ChatSiderbar setSelectedUser={setSelectedUser} />
         <ChatMainPage selectedUser={selectedUser} />
       </div>

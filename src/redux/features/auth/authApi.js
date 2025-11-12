@@ -15,6 +15,14 @@ const authApi = baseApi.injectEndpoints({
         body: data,
       }),
     }),
+    
+    getMyProfile: builder.query({
+      query: (data) => ({
+        url: "/auth/me",
+        method: "GET",
+        body: data,
+      }),
+    }),
     logout: builder.mutation({
       query: () => ({
         url: "/logout",
@@ -52,4 +60,5 @@ export const {
   useForgotPasswordMutation,
   useVerifyEmailMutation,
   useResetPasswordMutation,
+  useGetMyProfileQuery,
 } = authApi;

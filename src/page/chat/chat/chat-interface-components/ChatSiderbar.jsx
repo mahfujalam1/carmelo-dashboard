@@ -26,8 +26,8 @@ const UserChat = ({ data, setSelectedUser }) => {
   return (
     <div
       onClick={() => {
-        setSelectedUser(data?.user2);
-        localStorage.setItem("selectedUser", JSON.stringify(data?.user2));
+        setSelectedUser(data);
+        localStorage.setItem("selectedUser", JSON.stringify(data));
       }}
       className="flex gap-2 hover:bg-gray-100 p-2 cursor-pointer space-y-2 mb-2 border-b pb-2 border-gray-200 w-full items-center"
     >

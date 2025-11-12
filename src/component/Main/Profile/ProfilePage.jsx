@@ -1,10 +1,18 @@
-// ProfilePage.jsx — styled same as provided image
 import React, { useState } from "react";
 import { Card, Input, Button, Avatar } from "antd";
 import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
+import {
+  useGetMyProfileQuery,
+  useUdpateMyProfileMutation,
+} from "../../../redux/features/auth/authApi";
+import { useChangePasswordMutation } from "../../../redux/features/user/userApi";
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("editProfile");
+  const { data } = useGetMyProfileQuery();
+  const [updateProfile] = useUdpateMyProfileMutation();
+  const [changePassword] = useChangePasswordMutation();
+  const userData = data?.data;
 
   const renderForm = () => {
     if (activeTab === "editProfile") {
@@ -15,23 +23,29 @@ export default function ProfilePage() {
           </h3>
           <div className="space-y-4">
             <Input
+              name="fullName"
               placeholder="User Name"
-              defaultValue="AnisulAqman"
+              defaultValue={userData?.fullName || "Mahfuj Alam"}
               size="large"
             />
             <Input
               placeholder="Email"
-              defaultValue="Anisul@gmail.com"
+              defaultValue={userData?.email || "Anisul@gmail.com"}
+              readOnly
               size="large"
             />
             <Input
+              name="phone"
               placeholder="Contact No"
-              defaultValue="+8801236789237"
+              defaultValue={userData?.phone || "+8801236789237"}
               size="large"
             />
             <Input
+              name="address"
               placeholder="Address"
-              defaultValue="71/A Joker Villa, Gotham City"
+              defaultValue={
+                userData?.address || "71/A Joker Villa, Gotham City"
+              }
               size="large"
             />
             <Button
@@ -53,10 +67,11 @@ export default function ProfilePage() {
       return (
         <div className="w-full max-w-md mx-auto">
           <h3 className="text-center mb-6 font-medium text-gray-700 text-lg">
-            Edit Your Profile
+            Change Your Password
           </h3>
           <div className="space-y-4">
             <Input.Password
+              name="previousPassword"
               placeholder="Current Password"
               size="large"
               iconRender={(visible) =>
@@ -64,12 +79,14 @@ export default function ProfilePage() {
               }
             />
             <Input.Password
+              name="newPassword"
               placeholder="New Password"
               size="large"
               iconRender={(visible) =>
                 visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
               }
             />
+            {/* it's just normally match up with new password, never push to update object */}
             <Input.Password
               placeholder="Confirm New Password"
               size="large"
@@ -99,9 +116,12 @@ export default function ProfilePage() {
     <div className="flex justify-center py-10">
       <Card className="w-full max-w-2xl p-8 border-none shadow-none">
         <div className="flex flex-col items-center">
-          <Avatar size={100} src="https://i.pravatar.cc/150?img=3" />
-          <h2 className="mt-3 text-xl font-semibold">Mr. Admin</h2>
-          <p className="text-gray-500 text-sm">@admin</p>
+          <Avatar
+            size={100}
+            src={userData?.avatar || "https://i.pravatar.cc/150?img=3"}
+          />
+          <h2 className="mt-3 text-xl font-semibold">{userData?.fullName}</h2>
+          <p className="text-gray-500 text-sm">@{userData?.role}</p>
 
           {/* Tabs below image */}
           <div className="mt-6 flex gap-8 border-b border-gray-200">
