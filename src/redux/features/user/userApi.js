@@ -1,4 +1,5 @@
 import { baseApi } from "../../baseApi/baseApi";
+import { tagTypes } from "../../tagTypes";
 
 const userApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -33,11 +34,15 @@ const userApi = baseApi.injectEndpoints({
       }),
     }),
     udpateMyProfile: builder.mutation({
-      query: (data) => ({
-        url: "/users",
-        method: "PATCH",
-        body: data,
-      }),
+      query: (data) => {
+        console.log("from apis",data)
+        return {
+          url: "/users",
+          method: "PATCH",
+          body: data,
+        };
+      },
+      invalidatesTags: [tagTypes.users],
     }),
     changePassword: builder.mutation({
       query: (data) => ({
@@ -45,6 +50,7 @@ const userApi = baseApi.injectEndpoints({
         method: "PATCH",
         body: data,
       }),
+      invalidatesTags: [tagTypes.users],
     }),
     deleteUser: builder.mutation({
       query: (id) => ({

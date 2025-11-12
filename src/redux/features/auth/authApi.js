@@ -1,4 +1,5 @@
 import { baseApi } from "../../baseApi/baseApi";
+import { tagTypes } from "../../tagTypes";
 const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     login: builder.mutation({
@@ -22,6 +23,7 @@ const authApi = baseApi.injectEndpoints({
         method: "GET",
         body: data,
       }),
+      providesTags:[tagTypes.users]
     }),
     logout: builder.mutation({
       query: () => ({

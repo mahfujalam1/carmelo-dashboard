@@ -13,11 +13,11 @@ export default function ProductModal({
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("Foods");
   const [price, setPrice] = useState("");
-  const [size, setSize] = useState("");
-  const [sizes, setSizes] = useState([]);
-  const [condition, setCondition] = useState("");
+  const [condition, setCondition] = useState("new"); // "new" or "gently_used"
+  const [swappable, setSwappable] = useState(false); // true or false
   const [description, setDescription] = useState("");
-  const [files, setFiles] = useState([null, null, null]);
+  const [files, setFiles] = useState([]); // Handle multiple files
+  const [sizes, setSizes] = useState([]); // Sizes array (for storing "S", "M", "L", etc.)
 
   const { data: categoriesData, isLoading: isCategoriesLoading } =
     useGetCategoriesQuery();
@@ -32,32 +32,36 @@ export default function ProductModal({
       setTitle(initialData.title || "");
       setCategory(initialData.category || "Foods");
       setPrice(initialData.price?.toString() || "");
-      setSize(initialData.size || "");
-      setCondition(initialData.condition || "");
+      setCondition(initialData.condition || "new");
       setDescription(initialData.description || "");
+      setSwappable(initialData.swappable || false);
 
       // Load images
       if (initialData.images?.length) {
         const mapped = initialData.images.map((url) => ({ file: null, url }));
-        setFiles([...mapped, null, null].slice(0, 3));
+        setFiles(mapped); // Preload image URLs
+      }
+
+      // Load sizes (stored as a string array)
+      if (initialData.sizes?.length) {
+        setSizes(initialData.sizes);
       }
     }
   }, [initialData]);
 
-  // 🔹 Handle individual image upload
-  const handleFileChange = (e, index) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const newFiles = [...files];
-    newFiles[index] = { file, url: URL.createObjectURL(file) };
-    setFiles(newFiles);
+  // 🔹 Handle individual image upload (multiple files)
+  const handleFileChange = (e) => {
+    const newFiles = Array.from(e.target.files).map((file) => ({
+      file,
+      url: URL.createObjectURL(file),
+    }));
+    setFiles((prevFiles) => [...prevFiles, ...newFiles]);
   };
 
   // 🔹 Handle adding size input
-  const handleAddSize = () => {
+  const handleAddSize = (size) => {
     if (size && !sizes.includes(size)) {
       setSizes((prevSizes) => [...prevSizes, size]);
-      setSize("");
     }
   };
 
@@ -71,25 +75,38 @@ export default function ProductModal({
     e.preventDefault();
 
     const formData = new FormData();
+
+    // Append basic fields
     formData.append("title", title);
     formData.append("name", name);
     formData.append("category", category);
     formData.append("price", price);
     formData.append("condition", condition);
     formData.append("description", description);
+    formData.append("swappable", swappable);
 
-    // Append files
-    files.filter(Boolean).forEach((file, index) => {
-      formData.append(`images[${index}]`, file.file);
+    // Debugging: Check what is being appended to FormData
+    console.log("Appending files:");
+    files.forEach((file, index) => {
+      console.log(`Appending file ${index}:`, file);
+      formData.append(`images[${index}]`, file.file); // Ensure file.file is the correct File object
     });
 
-    // Append sizes as an array
-    sizes.forEach((size) => {
-      formData.append("sizes[]", size);
+    // Append sizes array
+    console.log("Appending sizes:");
+    sizes.forEach((size, index) => {
+      console.log(`Appending size ${index}:`, size);
+      formData.append("sizes[]", size); // Append each size in the array
     });
+
+    // Debugging: Log the formData entries before sending
+    for (let pair of formData.entries()) {
+      console.log(pair[0] + ": " + pair[1]);
+    }
 
     try {
       // Send data to the backend
+      console.log("product form data=>", formData);
       await addProduct(formData).unwrap();
       onSave(); // Trigger the onSave callback after saving the product
       onClose(); // Close the modal
@@ -114,58 +131,46 @@ export default function ProductModal({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            {/* Left: Image Upload */}
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Upload Product Image
-              </label>
-              <div className="grid grid-cols-3 gap-3 border-2 border-dashed border-gray-300 p-3 rounded-xl">
-                {files.map((file, i) => (
-                  <label
-                    key={i}
-                    className="relative flex h-28 cursor-pointer flex-col items-center justify-center rounded-lg border border-gray-200 hover:border-gray-400 hover:bg-gray-50 overflow-hidden"
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Upload Product Images
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              className="mb-3"
+              onChange={handleFileChange}
+            />
+            <div className="grid grid-cols-3 gap-3">
+              {files.map((file, i) => (
+                <div
+                  key={i}
+                  className="relative flex h-28 cursor-pointer flex-col items-center justify-center rounded-lg border border-gray-200 hover:border-gray-400 hover:bg-gray-50 overflow-hidden"
+                >
+                  <img
+                    src={file.url}
+                    alt="preview"
+                    className="h-full w-full object-cover rounded-lg"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newFiles = [...files];
+                      newFiles.splice(i, 1);
+                      setFiles(newFiles);
+                    }}
+                    className="absolute top-0 right-0 p-1 text-white bg-red-500 rounded-full"
                   >
-                    {file ? (
-                      <img
-                        src={file.url}
-                        alt="preview"
-                        className="h-full w-full object-cover rounded-lg"
-                      />
-                    ) : (
-                      <>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-8 w-8 text-gray-400"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M12 4v16m8-8H4"
-                          />
-                        </svg>
-                        <span className="text-sm text-green-600 font-medium mt-1">
-                          Browse Image
-                        </span>
-                      </>
-                    )}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="absolute inset-0 opacity-0 cursor-pointer"
-                      onChange={(e) => handleFileChange(e, i)}
-                    />
-                  </label>
-                ))}
-              </div>
+                    ×
+                  </button>
+                </div>
+              ))}
             </div>
-
+          </div>
+          <div className="">
             {/* Right: Product Info */}
-            <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-5">
               {/* Product Title */}
               <div>
                 <label className="block text-sm font-medium">
@@ -181,7 +186,7 @@ export default function ProductModal({
                 />
               </div>
 
-              {/* Product Type */}
+              {/* Product Title */}
               <div>
                 <label className="block text-sm font-medium">
                   Product Title
@@ -195,43 +200,39 @@ export default function ProductModal({
                 />
               </div>
 
-              {/* Size */}
+              {/* Size Selection */}
               <div>
                 <label className="block text-sm font-medium">
                   Product Size
                 </label>
-                <div className="flex space-x-2">
-                  <input
-                    type="text"
-                    value={size}
-                    onChange={(e) => setSize(e.target.value)}
-                    placeholder="e.g. S, M, L"
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddSize}
-                    className="px-3 py-2 bg-gray-800 text-white rounded-lg"
-                  >
-                    Add
-                  </button>
-                </div>
-                {sizes.length > 0 && (
-                  <ul className="mt-2">
-                    {sizes.map((size, index) => (
-                      <li key={index} className="flex items-center space-x-2">
-                        <span>{size}</span>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveSize(size)}
-                          className="text-red-600"
-                        >
-                          Remove
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                <select
+                  onChange={(e) => handleAddSize(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                >
+                  <option value="">Select Size</option>
+                  {["S", "M", "L", "XL", "XXL"].map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+                <ul className="mt-2 flex gap-2">
+                  {sizes.map((size, index) => (
+                    <li
+                      key={index}
+                      className="flex items-center space-x-2 text-sm bg-gray-200 px-1 text-black rounded-lg"
+                    >
+                      <span>{size}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveSize(size)}
+                        className="text-red-600"
+                      >
+                        ×
+                      </button>
+                    </li>
+                  ))}
+                </ul>
               </div>
 
               {/* Price */}
@@ -267,6 +268,32 @@ export default function ProductModal({
                   )}
                 </select>
               </div>
+
+              {/* Condition */}
+              <div>
+                <label className="block text-sm font-medium">Condition</label>
+                <select
+                  value={condition}
+                  onChange={(e) => setCondition(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                >
+                  <option value="new">New</option>
+                  <option value="gently_used">Gently Used</option>
+                </select>
+              </div>
+
+              {/* Swappable */}
+              <div>
+                <label className="block text-sm font-medium">Swappable</label>
+                <select
+                  value={swappable}
+                  onChange={(e) => setSwappable(e.target.value === "true")}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                >
+                  <option value="true">True</option>
+                  <option value="false">False</option>
+                </select>
+              </div>
             </div>
           </div>
 
@@ -280,20 +307,6 @@ export default function ProductModal({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Write here..."
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-            />
-          </div>
-
-          {/* Condition */}
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Product Condition
-            </label>
-            <input
-              type="text"
-              value={condition}
-              onChange={(e) => setCondition(e.target.value)}
-              placeholder="e.g. New / Used"
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
             />
           </div>

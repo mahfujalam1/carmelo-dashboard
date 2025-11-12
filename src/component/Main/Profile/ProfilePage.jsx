@@ -1,11 +1,12 @@
-import React, { useState } from "react";
-import { Card, Input, Button, Avatar } from "antd";
+import React, { useEffect, useState } from "react";
+import { Card, Input, Button, Avatar, Form } from "antd";
 import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
 import {
-  useGetMyProfileQuery,
+  useChangePasswordMutation,
   useUdpateMyProfileMutation,
-} from "../../../redux/features/auth/authApi";
-import { useChangePasswordMutation } from "../../../redux/features/user/userApi";
+} from "../../../redux/features/user/userApi";
+import { useGetMyProfileQuery } from "../../../redux/features/auth/authApi";
+import { toast } from "sonner";
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("editProfile");
@@ -13,6 +14,46 @@ export default function ProfilePage() {
   const [updateProfile] = useUdpateMyProfileMutation();
   const [changePassword] = useChangePasswordMutation();
   const userData = data?.data;
+  const [form] = Form.useForm();
+
+  useEffect(() => {
+    if (userData) {
+      form.setFieldsValue({
+        fullName: userData?.fullName,
+        email: userData?.email, // Email is set but will not be submitted
+        address: userData?.address,
+        phone: userData?.phone,
+      });
+    }
+  }, [userData, form]);
+
+  // Handle profile update form submission
+  const handleUpdateProfile = async (values) => {
+    try {
+      // Remove email from values before sending to the API
+      const { email, ...profileData } = values;
+      // Call API with updated data excluding email
+      const res = await updateProfile(profileData).unwrap();
+      toast.success(res.message); // Show success message
+    } catch (error) {
+      toast.error("Failed to update profile"); // Show error message
+    }
+  };
+
+  // Handle password change form submission
+  const handlePasswordChange = async (values) => {
+    const { previousPassword, newPassword, confirmPassword } = values;
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords do not match"); // Show error if passwords don't match
+      return;
+    }
+    try {
+      await changePassword({ previousPassword, newPassword }).unwrap();
+      toast.success("Password changed successfully"); // Show success message
+    } catch (error) {
+      toast.error("Failed to change password"); // Show error message
+    }
+  };
 
   const renderForm = () => {
     if (activeTab === "editProfile") {
@@ -22,44 +63,58 @@ export default function ProfilePage() {
             Edit Your Profile
           </h3>
           <div className="space-y-4">
-            <Input
-              name="fullName"
-              placeholder="User Name"
-              defaultValue={userData?.fullName || "Mahfuj Alam"}
-              size="large"
-            />
-            <Input
-              placeholder="Email"
-              defaultValue={userData?.email || "Anisul@gmail.com"}
-              readOnly
-              size="large"
-            />
-            <Input
-              name="phone"
-              placeholder="Contact No"
-              defaultValue={userData?.phone || "+8801236789237"}
-              size="large"
-            />
-            <Input
-              name="address"
-              placeholder="Address"
-              defaultValue={
-                userData?.address || "71/A Joker Villa, Gotham City"
-              }
-              size="large"
-            />
-            <Button
-              type="primary"
-              block
-              style={{
-                backgroundColor: "#000",
-                color: "#fff",
-                height: 40,
-                fontWeight: 500,
-              }}
+            <Form
+              form={form}
+              layout="vertical"
+              requiredMark={false}
+              onFinish={handleUpdateProfile}
             >
-              Save & Change
-            </Button>
+              <Form.Item
+                name="fullName"
+                label="Full Name"
+                rules={[
+                  { required: true, message: "Please enter your full name" },
+                ]}
+              >
+                <Input placeholder="User Name" size="large" />
+              </Form.Item>
+              <Form.Item name="email" label="Email">
+                <Input placeholder="Enter your email" readOnly size="large" />
+              </Form.Item>
+              <Form.Item
+                name="phone"
+                label="Phone"
+                rules={[
+                  { required: true, message: "Please enter your phone number" },
+                ]}
+              >
+                <Input placeholder="Contact No" size="large" />
+              </Form.Item>
+              <Form.Item
+                name="address"
+                label="Address"
+                rules={[
+                  { required: true, message: "Please enter your address" },
+                ]}
+              >
+                <Input placeholder="Enter your address" size="large" />
+              </Form.Item>
+              <Form.Item>
+                <Button
+                  htmlType="submit"
+                  type="primary"
+                  block
+                  style={{
+                    backgroundColor: "#000",
+                    color: "#fff",
+                    height: 40,
+                    fontWeight: 500,
+                  }}
+                >
+                  Save & Change
+                </Button>
+              </Form.Item>
+            </Form>
           </div>
         </div>
       );
@@ -70,42 +125,74 @@ export default function ProfilePage() {
             Change Your Password
           </h3>
           <div className="space-y-4">
-            <Input.Password
-              name="previousPassword"
-              placeholder="Current Password"
-              size="large"
-              iconRender={(visible) =>
-                visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
-              }
-            />
-            <Input.Password
-              name="newPassword"
-              placeholder="New Password"
-              size="large"
-              iconRender={(visible) =>
-                visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
-              }
-            />
-            {/* it's just normally match up with new password, never push to update object */}
-            <Input.Password
-              placeholder="Confirm New Password"
-              size="large"
-              iconRender={(visible) =>
-                visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
-              }
-            />
-            <Button
-              type="primary"
-              block
-              style={{
-                backgroundColor: "#000",
-                color: "#fff",
-                height: 40,
-                fontWeight: 500,
-              }}
-            >
-              Send & Change
-            </Button>
+            <Form onFinish={handlePasswordChange} layout="vertical">
+              <Form.Item
+                name="previousPassword"
+                label="Current Password"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please enter your current password",
+                  },
+                ]}
+              >
+                <Input.Password
+                  placeholder="Current Password"
+                  size="large"
+                  iconRender={(visible) =>
+                    visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
+                  }
+                />
+              </Form.Item>
+              <Form.Item
+                name="newPassword"
+                label="New Password"
+                rules={[
+                  { required: true, message: "Please enter a new password" },
+                ]}
+              >
+                <Input.Password
+                  placeholder="New Password"
+                  size="large"
+                  iconRender={(visible) =>
+                    visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
+                  }
+                />
+              </Form.Item>
+              <Form.Item
+                name="confirmPassword"
+                label="Confirm New Password"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please confirm your new password",
+                  },
+                ]}
+              >
+                <Input.Password
+                  placeholder="Confirm New Password"
+                  size="large"
+                  iconRender={(visible) =>
+                    visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
+                  }
+                />
+              </Form.Item>
+              <Form.Item>
+                <Button
+                  htmlType="submit"
+                  type="primary"
+                  block
+                  style={{
+                    backgroundColor: "#000",
+                    color: "#fff",
+                    height: 40,
+                    fontWeight: 500,
+                  }}
+                >
+                  Send & Change
+                </Button>
+              </Form.Item>
+            </Form>
           </div>
         </div>
       );

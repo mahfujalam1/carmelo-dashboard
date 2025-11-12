@@ -5,6 +5,7 @@ const productApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     addProduct: builder.mutation({
       query: (formdata) => {
+        console.log("product data from apis file=>", formdata)
         return {
           url: "/products",
           method: "POST",
@@ -19,7 +20,6 @@ const productApi = baseApi.injectEndpoints({
         method: "GET",
       }),
       providesTags: ["Products"],
-      transformResponse: (response) => response?.data?.attributes?.results,
     }),
     getProductById: builder.query({
       query: (id) => ({
