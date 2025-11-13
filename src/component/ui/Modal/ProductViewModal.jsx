@@ -11,17 +11,9 @@ const ProductViewModal = ({ open, onClose, product }) => {
 
   if (!product) return null;
 
-  const sizes =
-    product?.sizes && product.sizes.length
-      ? product.sizes
-      : [
-          { label: "ALL", price: "$10" },
-          { label: "US S", price: "ASK" },
-          { label: "US L", price: "$9" },
-          { label: "AS M", price: "ASK" },
-          { label: "US XL", price: "$10" },
-          { label: "US XXL", price: "ASK" },
-        ];
+  const sizes = product?.sizes && product.sizes.length ? product.sizes : "";
+
+  console.log(product);
 
   return (
     <Modal
@@ -44,7 +36,7 @@ const ProductViewModal = ({ open, onClose, product }) => {
             />
           </div>
 
-          <div className="mt-4 flex gap-3 overflow-x-auto">
+          <div className="mt-4 flex gap-3 ">
             {product.images?.map((img, i) => (
               <button
                 key={i}
@@ -70,7 +62,7 @@ const ProductViewModal = ({ open, onClose, product }) => {
           <div className="flex items-start justify-between">
             <div>
               <h2 className="text-xl font-semibold">{product.name}</h2>
-              <p className="text-sm text-gray-500">{product.title}</p>
+              <p className="text-lg text-gray-500">{product.title}</p>
             </div>
             <div className="text-xl font-bold text-gray-900">
               ${product.price ?? "—"}
@@ -90,12 +82,12 @@ const ProductViewModal = ({ open, onClose, product }) => {
               Available Size:
             </h4>
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-              {sizes.map((item, i) => (
+              {sizes?.map((item, i) => (
                 <div
                   key={i}
                   className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer"
                 >
-                  <span>{item.label}</span>
+                  <span>{item}</span>
                   <span className="text-gray-500">{item.price}</span>
                 </div>
               ))}

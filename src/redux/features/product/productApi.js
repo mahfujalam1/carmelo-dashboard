@@ -5,7 +5,7 @@ const productApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     addProduct: builder.mutation({
       query: (formdata) => {
-        console.log("product data from apis file=>", formdata)
+        console.log("product data from apis file=>", formdata);
         return {
           url: "/products",
           method: "POST",
@@ -14,37 +14,41 @@ const productApi = baseApi.injectEndpoints({
       },
       invalidatesTags: [tagTypes.products],
     }),
+
     getAllProducts: builder.query({
-      query: () => ({
-        url: "/admin/products",
+      query: (page, limit) => ({
+        url: `/products/all?page=${page}&limit=${limit}`,
         method: "GET",
       }),
-      providesTags: ["Products"],
+      providesTags: [tagTypes.products],
     }),
+
     getProductById: builder.query({
       query: (id) => ({
-        url: `/admin/product/${id}`,
+        url: `/products/${id}`,
         method: "GET",
       }),
-      providesTags: ["Products"],
-      transformResponse: (response) => response?.data?.attributes,
+      providesTags: [tagTypes.products],
     }),
+
     updateProduct: builder.mutation({
-      query: ({id, formdata}) => {
+      query: ({ id, formdata }) => {
+        console.log("formData from api =>", formdata); // This is just for debugging; remove it in production.
         return {
-          url: `/admin/product/${id}`,
+          url: `/products/${id}`,
           method: "PATCH",
-          body: formdata,
+          body: formdata, // Ensure that formdata is passed correctly as FormData
         };
       },
-      invalidatesTags: ["Products"],
+      invalidatesTags: [tagTypes.products],
     }),
+
     deleteProduct: builder.mutation({
       query: (id) => ({
-        url: `/admin/product/${id}`,
+        url: `/products/${id}`,
         method: "DELETE",
       }),
-      invalidatesTags: ["Products"],
+      invalidatesTags: [tagTypes.products],
     }),
   }),
 });
