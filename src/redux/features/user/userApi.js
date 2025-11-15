@@ -26,6 +26,7 @@ const userApi = baseApi.injectEndpoints({
         url: `/users?page=${page}&limit=${limit}`,
         method: "GET",
       }),
+      providesTags:[tagTypes.users]
     }),
     getSingleUser: builder.query({
       query: (id) => ({
@@ -35,7 +36,7 @@ const userApi = baseApi.injectEndpoints({
     }),
     udpateMyProfile: builder.mutation({
       query: (data) => {
-        console.log("from apis",data)
+        console.log("from apis", data);
         return {
           url: "/users",
           method: "PATCH",
@@ -54,9 +55,10 @@ const userApi = baseApi.injectEndpoints({
     }),
     deleteUser: builder.mutation({
       query: (id) => ({
-        url: `/users/${id}`,
+        url: `/users/delete-user/${id}`,
         method: "DELETE",
       }),
+      invalidatesTags:[tagTypes.users]
     }),
     usersGrowth: builder.query({
       query: (year) => ({

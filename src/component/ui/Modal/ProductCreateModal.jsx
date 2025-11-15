@@ -12,7 +12,7 @@ const ProductCreateModal = ({ onClose, onSave }) => {
   const [files, setFiles] = useState([]);
   const [sizes, setSizes] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [addProduct] = useAddProductMutation()
+  const [addProduct] = useAddProductMutation();
   const { data: categoriesData, isLoading: isCategoriesLoading } =
     useGetCategoriesQuery();
 
@@ -45,7 +45,7 @@ const ProductCreateModal = ({ onClose, onSave }) => {
     formData.append("sizes", `[${sizes.join(",")}]`);
 
     try {
-      console.log(formData)
+      console.log(formData);
       await addProduct(formData).unwrap();
       onSave();
       onClose();
@@ -153,6 +153,27 @@ const ProductCreateModal = ({ onClose, onSave }) => {
                 <Select.Option value={true}>Yes</Select.Option>
                 <Select.Option value={false}>No</Select.Option>
               </Select>
+            </Form.Item>
+            <Form.Item
+              name="sizes"
+              label="Select Sizes"
+              rules={[
+                { required: true, message: "Please select at least one size" },
+              ]}
+            >
+              <Select
+                mode="multiple"
+                placeholder="Select sizes"
+                onChange={(value) => setSizes(value)}
+                options={[
+                  { value: "XS", label: "XS" },
+                  { value: "S", label: "S" },
+                  { value: "M", label: "M" },
+                  { value: "L", label: "L" },
+                  { value: "XL", label: "XL" },
+                  { value: "XXL", label: "XXL" },
+                ]}
+              />
             </Form.Item>
           </div>
 

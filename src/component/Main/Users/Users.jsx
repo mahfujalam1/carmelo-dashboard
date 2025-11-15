@@ -143,34 +143,9 @@ const Users = () => {
 
   return (
     <section>
-      <div className="md:flex justify-between items-center py-6 mb-4">
+      <div className="md:flex justify-between items-center pb-6 mb-4">
         <h1 className="text-2xl font-semibold">All Users</h1>
-        <Form layout="inline" className="flex space-x-4">
-          <Item name="date">
-            <DatePicker
-              className="rounded-md border border-gray-600"
-              onChange={(date) => setSelectedDate(date)}
-              placeholder="Select Date"
-            />
-          </Item>
-          <Item name="username">
-            <Input
-              className="rounded-md w-[70%] md:w-full border border-gray-600"
-              placeholder="Search by name or email"
-              onChange={(e) => setSearchText(e.target.value)}
-              value={searchText}
-            />
-          </Item>
-          <Item>
-            <button
-              type="button"
-              onClick={() => setCurrentPage(1)}
-              className="size-8 rounded-full flex justify-center items-center border-2"
-            >
-              <IoIosSearch className="size-5" />
-            </button>
-          </Item>
-        </Form>
+        
       </div>
 
       <ConfigProvider

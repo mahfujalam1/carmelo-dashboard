@@ -9,15 +9,14 @@ const { TextArea } = Input;
 
 const ProductEditModal = ({ open, onClose, onSave, initialData }) => {
   const [form] = Form.useForm();
-  const [files, setFiles] = useState([]); // To store selected files
-  const [sizes, setSizes] = useState([]); // To store product sizes
-  const [categories, setCategories] = useState([]); // To store product categories
+  const [files, setFiles] = useState([]);
+  const [sizes, setSizes] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [updateProduct] = useUpdateProductMutation();
 
   const { data: categoriesData, isLoading: isCategoriesLoading } =
     useGetCategoriesQuery();
 
-  // Set categories and initial data when modal is opened
   useEffect(() => {
     if (categoriesData) {
       setCategories(categoriesData?.data || []);
@@ -27,42 +26,43 @@ const ProductEditModal = ({ open, onClose, onSave, initialData }) => {
       form.setFieldsValue({
         name: initialData.name,
         title: initialData.title,
-        category: initialData.category?._id, // Ensure category is selected
+        category: initialData.category?._id,
         price: initialData.price,
         condition: initialData.condition,
         description: initialData.description,
         swappable: initialData.swappable ? "true" : "false",
       });
 
-      // Set existing images
       if (initialData.images?.length) {
-        const mapped = initialData.images.map((url) => ({
-          file: null,
+        const mapped = initialData.images.map((url, index) => ({
+          uid: String(index),
+          name: `image-${index}`,
+          status: "done",
           url,
-          isExisting: true,
         }));
-        setFiles(mapped); // Populate with existing images
+        setFiles(mapped);
       }
 
-      // Set existing sizes
       if (initialData.sizes?.length) {
         setSizes(initialData.sizes);
+        form.setFieldsValue({ sizes: initialData.sizes });
       }
     }
   }, [categoriesData, initialData, form]);
 
-  // Handle file changes
-  const handleFileChange = (info) => {
-    const { fileList } = info;
-    setFiles(fileList); // Update state with new file list
+  const handleFileChange = ({ fileList }) => {
+    setFiles(
+      fileList.map((file) => ({
+        ...file,
+        uid: file.uid || String(Math.random()),
+      }))
+    );
   };
 
-  // Handle image removal
   const handleRemoveImage = (file) => {
-    setFiles((prevFiles) => prevFiles.filter((f) => f.uid !== file.uid)); // Remove file by uid
+    setFiles((prevFiles) => prevFiles.filter((f) => f.uid !== file.uid));
   };
 
-  // Handle product update
   const handleUpdateProduct = async (values) => {
     const formData = new FormData();
     formData.append("title", values.title);
@@ -71,26 +71,28 @@ const ProductEditModal = ({ open, onClose, onSave, initialData }) => {
     formData.append("price", values.price);
     formData.append("condition", values.condition);
     formData.append("description", values.description);
-    formData.append("swappable", values.swappable);
+    formData.append("swappable", values.swappable === "true");
 
-    // Add images to formData
     files.forEach((file) => {
-      formData.append("images", file.originFileObj);
+      if (file.originFileObj) {
+        formData.append("images", file.originFileObj);
+      } else if (file.url) {
+        formData.append("images", file.url);
+      }
     });
 
     formData.append("sizes", `[${sizes.join(",")}]`);
 
     try {
-      await updateProduct({ id: initialData._id, formdata: formData }).unwrap(); // Pass id and formData
-      onSave(); // Trigger save callback in parent
-      onClose(); // Close the modal after successful update
+      await updateProduct({ id: initialData._id, formdata: formData }).unwrap();
+      onSave();
+      onClose();
     } catch (error) {
       console.error("Error updating product:", error);
       message.error("Failed to update product.");
     }
   };
 
-  // If modal is not open, return null to prevent rendering
   if (!open) return null;
 
   return (
@@ -112,23 +114,21 @@ const ProductEditModal = ({ open, onClose, onSave, initialData }) => {
           layout="vertical"
           className="space-y-6"
         >
-          {/* Upload Product Images */}
           <Form.Item label="Upload Product Images" valuePropName="fileList">
             <Upload
               listType="picture-circle"
               multiple
               accept="image/*"
+              beforeUpload={() => false}
+              fileList={files}
               onChange={handleFileChange}
-              onRemove={handleRemoveImage} // Remove image handler
-              beforeUpload={() => false} // Prevent automatic upload
-              fileList={files} // Controlled file list state
+              onRemove={handleRemoveImage}
             >
               <Button icon={<PlusOutlined />}>Upload</Button>
             </Upload>
           </Form.Item>
 
           <div className="grid grid-cols-2 gap-5">
-            {/* Product Name */}
             <Form.Item
               name="name"
               label="Product Name"
@@ -137,12 +137,10 @@ const ProductEditModal = ({ open, onClose, onSave, initialData }) => {
               <Input placeholder="Product Name" />
             </Form.Item>
 
-            {/* Product Title */}
             <Form.Item name="title" label="Product Title">
               <Input placeholder="Product Title" />
             </Form.Item>
 
-            {/* Category */}
             <Form.Item
               name="category"
               label="Category"
@@ -160,7 +158,6 @@ const ProductEditModal = ({ open, onClose, onSave, initialData }) => {
               </Select>
             </Form.Item>
 
-            {/* Price */}
             <Form.Item
               name="price"
               label="Price"
@@ -169,7 +166,6 @@ const ProductEditModal = ({ open, onClose, onSave, initialData }) => {
               <Input type="number" placeholder="Price" />
             </Form.Item>
 
-            {/* Condition */}
             <Form.Item
               name="condition"
               label="Condition"
@@ -181,7 +177,6 @@ const ProductEditModal = ({ open, onClose, onSave, initialData }) => {
               </Select>
             </Form.Item>
 
-            {/* Swappable */}
             <Form.Item
               name="swappable"
               label="Swappable"
@@ -194,14 +189,35 @@ const ProductEditModal = ({ open, onClose, onSave, initialData }) => {
                 <Select.Option value="false">No</Select.Option>
               </Select>
             </Form.Item>
+
+            <Form.Item
+              name="sizes"
+              label="Available Sizes"
+              rules={[
+                { required: true, message: "Please select at least one size" },
+              ]}
+            >
+              <Select
+                mode="multiple"
+                placeholder="Select sizes"
+                value={sizes}
+                onChange={(value) => setSizes(value)}
+                options={[
+                  { value: "XS", label: "XS" },
+                  { value: "S", label: "S" },
+                  { value: "M", label: "M" },
+                  { value: "L", label: "L" },
+                  { value: "XL", label: "XL" },
+                  { value: "XXL", label: "XXL" },
+                ]}
+              />
+            </Form.Item>
           </div>
 
-          {/* Description */}
           <Form.Item name="description" label="Description">
             <TextArea rows={4} placeholder="Product description" />
           </Form.Item>
 
-          {/* Submit and Cancel Buttons */}
           <div className="flex justify-center gap-4 pt-4">
             <Button type="primary" htmlType="submit">
               Update

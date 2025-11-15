@@ -16,10 +16,13 @@ const productApi = baseApi.injectEndpoints({
     }),
 
     getAllProducts: builder.query({
-      query: (page, limit) => ({
-        url: `/products/all?page=${page}&limit=${limit}`,
-        method: "GET",
-      }),
+      query: ({ category, query, page, limit }) => {
+        console.log({ category, query, page, limit });
+        return {
+          url: `/products/all?category=${category}&query=${query}&page=${page}&limit=${limit}`,
+          method: "GET",
+        };
+      },
       providesTags: [tagTypes.products],
     }),
 
