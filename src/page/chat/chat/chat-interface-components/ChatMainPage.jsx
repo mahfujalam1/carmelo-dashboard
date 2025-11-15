@@ -3,23 +3,26 @@ import { Button, Form, Input } from "antd";
 import { FaMessage } from "react-icons/fa6";
 import { convertDate } from "../../../../utils/optimizationFunction";
 import cn from "../../../../utils/cn";
-import { useGetMessagesQuery } from "../../../../redux/features/chat/chatApis";
+import {
+  useGetMessagesQuery,
+  useSendFileMutation,
+} from "../../../../redux/features/chat/chatApis";
 import { SocketContext } from "../../../../Provider/SocketContext";
 import { FcAddImage } from "react-icons/fc";
 import { X } from "lucide-react";
 
 function ChatMainPage() {
   const stored = localStorage.getItem("selectedUser");
+  const [sendFileMessage] = useSendFileMutation();
   const selectedUser = stored ? JSON.parse(stored) : null;
   const { socket } = useContext(SocketContext);
-
+  const [files, setFiles] = useState([]); // Stores the selected files
   const user2 = selectedUser?.user2 || null;
   const admin = selectedUser?.admin || null;
   const roomId = selectedUser?._id;
 
   const [messages, setMessages] = useState([]);
   const [localMessages, setLocalMessages] = useState([]);
-  const [file, setFile] = useState(null);
   const chatEndRef = useRef(null);
   const [form] = Form.useForm();
 
@@ -65,47 +68,58 @@ function ChatMainPage() {
 
   // Handle file input
   const handleFileChange = (e) => {
-    const selected = e.target.files[0];
+    const selected = e.target.files;
     if (selected) {
-      setFile({
-        file: selected,
-        url: URL.createObjectURL(selected),
-      });
+      const fileArray = Array.from(selected).map((file) => ({
+        file,
+        url: URL.createObjectURL(file),
+      }));
+      setFiles((prevFiles) => [...prevFiles, ...fileArray]);
     }
   };
 
-  // Send text or file
-  const handleSendMessage = () => {
-    const text = form.getFieldValue("message")?.trim();
-    if (!text && !file) return;
+  // Remove file
+  const handleRemoveFile = (index) => {
+    setFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
+  };
 
-    // local preview message
+  // Send text or file
+  const handleSendMessage = async () => {
+    const text = form.getFieldValue("message")?.trim();
+    if (!text && files.length === 0) return;
+
+    // Local preview message
     const tempMsg = {
       _id: `temp-${Date.now()}`,
       sender: admin,
       receiver: user2,
       createdAt: new Date().toISOString(),
       message: text || "",
-      file: file ? file.url : null,
-      type: file ? "file" : "text",
+      file: files.length > 0 ? files[0].url : null, // First file preview
+      type: files.length > 0 ? "file" : "text",
     };
     setLocalMessages((prev) => [...prev, tempMsg]);
 
-    // emit
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        socket.emit("send-file", {
-          room: roomId,
-          receiver: user2._id,
-          file: reader.result, // base64 or binary
-          fileName: file.file.name,
-          fileType: file.file.type,
-        });
-      };
-      reader.readAsDataURL(file.file);
-      setFile(null);
+    // Create FormData for sending file
+    if (files.length > 0) {
+      const formData = new FormData();
+      formData.append("receiver", user2._id);
+      formData.append("message", text);
+
+      // Append files to formData
+      files.forEach((file) => {
+        formData.append("files", file.file); // Append each file as a separate image
+      });
+
+      // Send the FormData to the server
+      try {
+        await sendFileMessage(formData); // Send FormData via the mutation
+        setFiles([]); // Reset files after sending
+      } catch (error) {
+        console.error("Error sending file message:", error);
+      }
     } else if (text) {
+      // If no file, just send the text message via socket
       socket.emit("message", {
         room: roomId,
         receiver: user2._id,
@@ -140,7 +154,6 @@ function ChatMainPage() {
             {allMessages.length > 0 ? (
               allMessages.map((msg, index) => {
                 const isMyMessage = msg?.sender?._id === admin?._id;
-                console.log("my messages",msg)
                 return (
                   <div
                     key={msg._id || index}
@@ -235,8 +248,9 @@ function ChatMainPage() {
                     <div className="hidden">
                       <input
                         type="file"
-                        accept="image/*,application/pdf"
+                        accept="image/*"
                         className="hidden"
+                        multiple
                         onChange={handleFileChange}
                       />
                     </div>
@@ -245,27 +259,25 @@ function ChatMainPage() {
                 </div>
 
                 {/* File preview */}
-                {file && (
+                {files.length > 0 && (
                   <div className="absolute bottom-12 right-20 bg-white border p-2 rounded shadow">
                     <div className="flex items-center gap-2">
-                      {file.file.type.startsWith("image/") ? (
-                        <img
-                          src={file.url}
-                          alt="preview"
-                          className="w-10 h-10 rounded object-cover"
-                        />
-                      ) : (
-                        <p className="text-sm text-gray-700 truncate max-w-[100px]">
-                          {file.file.name}
-                        </p>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => setFile(null)}
-                        className="text-gray-400 hover:text-red-500"
-                      >
-                        <X size={16} />
-                      </button>
+                      {files.map((file, index) => (
+                        <div key={index} className="relative">
+                          <img
+                            src={file.url}
+                            alt="preview"
+                            className="w-10 h-10 rounded object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveFile(index)}
+                            className="absolute top-0 right-0 text-gray-400 hover:text-red-500"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
