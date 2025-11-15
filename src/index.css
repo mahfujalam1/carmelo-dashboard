@@ -14,6 +14,11 @@
   font-style: normal;
 }
 
+.quill-editor-large .ql-editor {
+  font-size: 18px;
+  line-height: 1.6;
+}
+
 /* Custom scrollbar for sidebar with a minimal and modern design */
 .sidebar {
   overflow-y: scroll;

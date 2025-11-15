@@ -1,73 +1,101 @@
 import { IoChevronBack } from "react-icons/io5";
 import { Link } from "react-router-dom";
-import ReactQuill from "react-quill"; // Import React Quill
-import "react-quill/dist/quill.snow.css"; // Import Quill styles
-import { useState } from "react";
-import CustomButton from "../../utils/CustomButton";
 import { Button, Form } from "antd";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
+import { useEffect, useState } from "react";
+import CustomButton from "../../utils/CustomButton";
+import {
+  useGetPolicyQuery,
+  useUpdatePolicyMutation,
+} from "../../redux/features/Terms&policy/terms-policy";
+import { toast } from "sonner";
 
 const EditPrivacyPolicy = () => {
   const [form] = Form.useForm();
-  const [content, setContent] = useState(
-    "<h1>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse at adipiscing proin et.</h1>"
-  ); // Default content for the privacy policy
+  const { data } = useGetPolicyQuery();
+  const policy = data?.data;
+  const policyData = policy?.content;
 
-  const handleSubmit = () => {
-    console.log("Updated Privacy Policy Content:", content);
-    // Handle form submission, e.g., update the privacy policy in the backend
+  const [content, setContent] = useState("");
+  const [updatepolicy, { isLoading }] = useUpdatePolicyMutation();
+
+  useEffect(() => {
+    if (policyData) {
+      setContent(policyData);
+      form.setFieldsValue({ content: policyData });
+    }
+  }, [policyData, form]);
+
+  const handleSubmit = async () => {
+    const payload = {
+      content,
+      type: "policy",
+    };
+
+    try {
+      await updatepolicy(payload).unwrap();
+      toast.success("Successfully Updated privacy policy");
+      console.log("Updated:", payload);
+    } catch (err) {
+      console.error("Update failed:", err);
+    }
   };
 
   return (
-    <section className="w-full h-full min-h-screen ">
-      {/* Header Section */}
+    <section className="w-full h-full min-h-screen">
       <div className="flex justify-between items-center py-5">
         <div className="flex items-center">
-          <Link to="/settings/privacy-policy">
-            <IoChevronBack className="text-2xl" />
-          </Link>
-          <h1 className="text-2xl font-semibold">Privacy Policy</h1>
+          
+          <h1 className="text-2xl font-semibold">Edit policy and Conditions</h1>
         </div>
       </div>
 
-      {/* Form Section */}
       <div className="w-full p-6 rounded-lg shadow-md">
         <Form form={form} layout="vertical" onFinish={handleSubmit}>
-          {/* React Quill for Privacy Policy Content */}
-          <Form.Item name="content" initialValue={content}>
+          <Form.Item name="content">
             <ReactQuill
               value={content}
-              onChange={(value) => setContent(value)}
+              onChange={(value) => {
+                setContent(value);
+                form.setFieldsValue({ content: value });
+              }}
               modules={{
                 toolbar: [
-                  [{ header: [1, 2, 3, 4, 5, 6, false] }], // Header dropdown
-                  [{ font: [] }], // Font options
-                  [{ list: "ordered" }, { list: "bullet" }], // Ordered and bullet lists
-                  ["bold", "italic", "underline", "strike"], // Formatting options
-                  [{ align: [] }], // Text alignment
-                  [{ color: [] }, { background: [] }], // Color and background
-                  ["blockquote", "code-block"], // Blockquote and code block
-                  ["link", "image", "video"], // Link, image, and video upload
-                  [{ script: "sub" }, { script: "super" }], // Subscript and superscript
-                  [{ indent: "-1" }, { indent: "+1" }], // Indent
-                  ["clean"], // Remove formatting
+                  [{ header: [1, 2, 3, false] }],
+                  [{ font: [] }],
+                  [{ list: "ordered" }, { list: "bullet" }],
+                  ["bold", "italic", "underline", "strike"],
+                  [{ align: [] }],
+                  [{ color: [] }, { background: [] }],
+                  ["blockquote", "code-block"],
+                  ["link", "image", "video"],
+                  [{ script: "sub" }, { script: "super" }],
+                  [{ indent: "-1" }, { indent: "+1" }],
+                  ["clean"],
                 ],
               }}
-              style={{ height: "300px" }} // Set the increased height
+              style={{ height: "300px" }}
             />
           </Form.Item>
-          
-          {/* Update Button */}
-         <div className="w-full flex justify-end mt-20 md:mt-16">
-         <Button
-          type="primary"
-          htmlType="submit"
-          icon={<i className="fas fa-sync-alt"></i>} // Example FontAwesome icon
-          className="mt-1 px-5 rounded-lg bg-gray-500 py-5  border-none"
-        >
-          Cancel 
-        </Button>
-         <CustomButton className="p-1" >Update</CustomButton>
-         </div>
+
+          <div className="w-full flex justify-end mt-20 md:mt-16 gap-3">
+            <Button
+              type="default"
+              className="mt-1 px-5 rounded-lg py-5"
+              onClick={() => form.resetFields()}
+            >
+              Cancel
+            </Button>
+
+            <CustomButton
+              className="p-1"
+              htmlType="submit"
+              disabled={isLoading}
+            >
+              {isLoading ? "Updating..." : "Update"}
+            </CustomButton>
+          </div>
         </Form>
       </div>
     </section>
