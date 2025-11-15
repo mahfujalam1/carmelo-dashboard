@@ -1,17 +1,22 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useForgotPasswordMutation } from "../../../redux/features/user/userApi";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
+  const [forgotPassword] = useForgotPasswordMutation();
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email) {
       setError("Email is Required");
       return;
     }
+    const res = await forgotPassword({ email: email });
+    console.log(res);
+    localStorage.setItem("forgot-token", res?.data?.data?.token)
     console.log("Email Sent:", email);
     navigate(`/auth/otp/${encodeURIComponent(email)}`);
   };
@@ -20,9 +25,7 @@ const ForgotPassword = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="bg-white rounded-xl shadow-md w-full max-w-lg p-10 text-center">
         {/* Logo */}
-        <div className="flex flex-col items-center mb-6">
-          
-        </div>
+        <div className="flex flex-col items-center mb-6"></div>
 
         <h2 className="text-lg font-semibold text-gray-800 mb-2">
           Forgot Password

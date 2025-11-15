@@ -30,7 +30,11 @@ const NewsViewModal = ({ open, onClose, item }) => {
         ) : null}
         <h3 className="text-lg font-semibold">{newsData?.title}</h3>
         <div className="text-gray-700 text-sm" />
-        {newsData?.content}
+        <div
+          dangerouslySetInnerHTML={{
+            __html: newsData?.content || "",
+          }}
+        />
       </div>
     </Modal>
   );

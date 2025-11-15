@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { Input, Select, Button, Form, Upload, message } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
+import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useGetCategoriesQuery } from "../../../redux/features/categories/categories";
 import { useUpdateProductMutation } from "../../../redux/features/product/productApi";
 
@@ -10,6 +10,7 @@ const { TextArea } = Input;
 const ProductEditModal = ({ open, onClose, onSave, initialData }) => {
   const [form] = Form.useForm();
   const [files, setFiles] = useState([]);
+  const [oldImages, setOldImages] = useState([]); // ADDED
   const [sizes, setSizes] = useState([]);
   const [categories, setCategories] = useState([]);
   const [updateProduct] = useUpdateProductMutation();
@@ -39,8 +40,10 @@ const ProductEditModal = ({ open, onClose, onSave, initialData }) => {
           name: `image-${index}`,
           status: "done",
           url,
+          isOld: true, // ADDED
         }));
         setFiles(mapped);
+        setOldImages(initialData.images); // ADDED
       }
 
       if (initialData.sizes?.length) {
@@ -60,6 +63,11 @@ const ProductEditModal = ({ open, onClose, onSave, initialData }) => {
   };
 
   const handleRemoveImage = (file) => {
+    // REMOVE old url from array
+    if (file.isOld) {
+      setOldImages((prev) => prev.filter((img) => img !== file.url));
+    }
+
     setFiles((prevFiles) => prevFiles.filter((f) => f.uid !== file.uid));
   };
 
@@ -73,17 +81,22 @@ const ProductEditModal = ({ open, onClose, onSave, initialData }) => {
     formData.append("description", values.description);
     formData.append("swappable", values.swappable === "true");
 
+    // NEW images => append as files
     files.forEach((file) => {
-      if (file.originFileObj) {
+      if (!file.isOld && file.originFileObj) {
         formData.append("images", file.originFileObj);
-      } else if (file.url) {
-        formData.append("images", file.url);
       }
+    });
+
+    // OLD images => append as URLs
+    oldImages.forEach((url) => {
+      formData.append("old_images[]", url);
     });
 
     formData.append("sizes", `[${sizes.join(",")}]`);
 
     try {
+
       await updateProduct({ id: initialData._id, formdata: formData }).unwrap();
       onSave();
       onClose();
@@ -116,13 +129,18 @@ const ProductEditModal = ({ open, onClose, onSave, initialData }) => {
         >
           <Form.Item label="Upload Product Images" valuePropName="fileList">
             <Upload
-              listType="picture-circle"
+              listType="picture-card"
               multiple
               accept="image/*"
               beforeUpload={() => false}
               fileList={files}
               onChange={handleFileChange}
               onRemove={handleRemoveImage}
+              showUploadList={{
+                showPreviewIcon: false,
+                showRemoveIcon: true,
+                removeIcon: <DeleteOutlined style={{ color: "red" }} />, // DELETE ONLY
+              }}
             >
               <Button icon={<PlusOutlined />}>Upload</Button>
             </Upload>
@@ -173,7 +191,7 @@ const ProductEditModal = ({ open, onClose, onSave, initialData }) => {
             >
               <Select placeholder="Select Condition">
                 <Select.Option value="new">New</Select.Option>
-                <Select.Option value="gently_used">Gently Used</Select.Option>
+                <Select.Option value="used">Gently Used</Select.Option>
               </Select>
             </Form.Item>
 

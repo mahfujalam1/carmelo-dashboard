@@ -14,6 +14,7 @@ export default function OrderTable() {
   if (isLoading) return <p>Loading...</p>;
 
   const orders = data?.data?.orders || [];
+  console.log(orders)
 
   const handleStatusChange = async (id, newStatus) => {
     try {
@@ -67,15 +68,15 @@ export default function OrderTable() {
               <td className="px-4 py-3 text-center">
                 <div className="relative inline-block">
                   <select
-                    defaultValue={order.status}
+                    defaultValue={order?.status}
                     onChange={(e) =>
                       handleStatusChange(order._id, e.target.value)
                     }
                     className="appearance-none bg-purple-50 border border-purple-200 text-purple-700 
                       text-sm rounded-md px-3 pr-8 py-1 focus:outline-none focus:ring-2 focus:ring-purple-300"
                   >
+                    <option value="processing">Processing</option>
                     <option value="shipped">Shipped</option>
-                    <option value="canceled">Canceled</option>
                     <option value="completed">Completed</option>
                   </select>
                   <ChevronDown className="absolute right-2 top-1.5 h-4 w-4 text-gray-500 pointer-events-none" />

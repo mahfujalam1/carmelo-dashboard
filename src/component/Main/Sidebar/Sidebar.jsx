@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { logoutUser } from "../../../redux/features/auth/authSlice";
 
 const navItems = [
   { label: "Dashboard", to: "/", icon: Home },
@@ -37,11 +38,11 @@ const settingsSubRoutes = [
 
 export default function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [confirmOpen, setConfirmOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleLogout = () => {
+    logoutUser();
     toast.success("User Logged Out!");
     navigate("/auth");
   };
@@ -76,7 +77,7 @@ export default function Sidebar() {
           {/* Close (mobile) */}
           <button
             onClick={() => setMobileOpen(false)}
-            className="ml-auto inline-flex rounded-lg p-2 hover:bg-gray-100 lg:hidden"  
+            className="ml-auto inline-flex rounded-lg p-2 hover:bg-gray-100 lg:hidden"
             aria-label="Close menu"
           >
             <X className="h-5 w-5" />
@@ -152,7 +153,7 @@ export default function Sidebar() {
 
           <div className="mt-4 border-t pt-4">
             <button
-              onClick={() => setConfirmOpen(true)}
+              onClick={handleLogout}
               className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-gray-700 hover:bg-gray-100"
             >
               <LogOut className="h-5 w-5" />

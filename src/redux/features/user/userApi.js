@@ -26,14 +26,16 @@ const userApi = baseApi.injectEndpoints({
         url: `/users?page=${page}&limit=${limit}`,
         method: "GET",
       }),
-      providesTags:[tagTypes.users]
+      providesTags: [tagTypes.users],
     }),
+
     getSingleUser: builder.query({
       query: (id) => ({
         url: `/users/${id}`,
         method: "GET",
       }),
     }),
+
     udpateMyProfile: builder.mutation({
       query: (data) => {
         console.log("from apis", data);
@@ -45,6 +47,7 @@ const userApi = baseApi.injectEndpoints({
       },
       invalidatesTags: [tagTypes.users],
     }),
+
     changePassword: builder.mutation({
       query: (data) => ({
         url: "/users/password",
@@ -53,17 +56,43 @@ const userApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: [tagTypes.users],
     }),
+
     deleteUser: builder.mutation({
       query: (id) => ({
         url: `/users/delete-user/${id}`,
         method: "DELETE",
       }),
-      invalidatesTags:[tagTypes.users]
+      invalidatesTags: [tagTypes.users],
     }),
+
     usersGrowth: builder.query({
       query: (year) => ({
         url: `/users/growth?year=${year}`,
         method: "GET",
+      }),
+    }),
+
+    forgotPassword: builder.mutation({
+      query: (email) => ({
+        url: "/users/forget-password",
+        method: "POST",
+        body: email,
+      }),
+    }),
+
+    verifyOTP: builder.mutation({
+      query: (data) => ({
+        url: "/users/verify-otp",
+        method: "POST",
+        body: data,
+      }),
+    }),
+
+    resetPassword: builder.mutation({
+      query: (data) => ({
+        url: "/users/reset-password",
+        method: "POST",
+        body: data,
       }),
     }),
   }),
@@ -76,4 +105,7 @@ export const {
   useDeleteUserMutation,
   useUdpateMyProfileMutation,
   useChangePasswordMutation,
+  useForgotPasswordMutation,
+  useVerifyOTPMutation,
+  useResetPasswordMutation,
 } = userApi;

@@ -137,7 +137,7 @@ const ProductCreateModal = ({ onClose, onSave }) => {
             >
               <Select placeholder="Select Condition">
                 <Select.Option value="new">New</Select.Option>
-                <Select.Option value="gently_used">Gently Used</Select.Option>
+                <Select.Option value="used">Gently Used</Select.Option>
               </Select>
             </Form.Item>
 

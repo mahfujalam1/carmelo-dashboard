@@ -21,7 +21,7 @@ export default function ProductsPage() {
   const categories = catData?.data || [];
 
   // Fetch products with all params
-  const { data, refetch, isFetching } = useGetAllProductsQuery({
+  const { data, isLoading } = useGetAllProductsQuery({
     category,
     query,
     page,
@@ -81,7 +81,7 @@ export default function ProductsPage() {
 
       <StatsBar total={products.length} published={products.length} />
 
-      <ProductTable rows={products} loading={isFetching} />
+      <ProductTable rows={products} loading={isLoading} />
 
       <div className="flex justify-center py-4">
         <Pagination

@@ -1,11 +1,14 @@
 import React, { useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useVerifyOTPMutation } from "../../../redux/features/user/userApi";
+import { toast } from "sonner";
 
 const OtpVerify = () => {
   const { email } = useParams();
-  const [otp, setOtp] = useState(["", "", "", ""]);
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const inputsRef = useRef([]);
   const navigate = useNavigate();
+  const [verfyOTP] = useVerifyOTPMutation();
 
   // handle otp input
   const handleChange = (value, index) => {
@@ -28,14 +31,16 @@ const OtpVerify = () => {
     }
   };
 
-  const handleVerify = (e) => {
+  const handleVerify = async (e) => {
     e.preventDefault();
+    const forgotToken = localStorage.getItem("forgot-token");
     const code = otp.join("");
-    if (code.length === 4) {
-      console.log("✅ OTP Verified for:", email, "→ Code:", code);
+    if (code.length === 6) {
+      const res = verfyOTP({ token: forgotToken, code: code });
+      console.log(res)
       navigate(`/auth/new-password/${encodeURIComponent(email)}`);
     } else {
-      alert("Please enter all 4 digits!");
+      toast.warning("Please enter all 6 digits!");
     }
   };
 
@@ -43,9 +48,7 @@ const OtpVerify = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="bg-white rounded-xl shadow-md w-full max-w-lg p-10 text-center">
         {/* Logo */}
-        <div className="flex flex-col items-center mb-6">
-          
-        </div>
+        <div className="flex flex-col items-center mb-6"></div>
 
         <h2 className="text-lg font-semibold text-gray-800 mb-2">Verify OTP</h2>
         <p className="text-sm text-gray-500 mb-6">
