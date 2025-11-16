@@ -10,6 +10,7 @@ import {
 import { SocketContext } from "../../../../Provider/SocketContext";
 import { FcAddImage } from "react-icons/fc";
 import { X } from "lucide-react";
+import { ImageModal } from "../../../../component/ui/Modal/ViewMessageImageModal";
 
 function ChatMainPage() {
   const stored = localStorage.getItem("selectedUser");
@@ -26,7 +27,12 @@ function ChatMainPage() {
   const chatEndRef = useRef(null);
   const [form] = Form.useForm();
 
+  // Image modal states
+  const [modalImages, setModalImages] = useState(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
   const { data: fetchedMessages = [] } = useGetMessagesQuery(roomId);
+  console.log(fetchedMessages);
 
   const scrollToBottom = () =>
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -53,14 +59,8 @@ function ChatMainPage() {
       setMessages((prev) => [...prev, msg]);
     });
 
-    socket.on("new-file", (msg) => {
-      if (msg?.room !== roomId) return;
-      setMessages((prev) => [...prev, msg]);
-    });
-
     return () => {
       socket.off("new-message");
-      socket.off("new-file");
     };
   }, [socket, roomId]);
 
@@ -95,7 +95,7 @@ function ChatMainPage() {
       receiver: user2,
       createdAt: new Date().toISOString(),
       message: text || "",
-      file: files.length > 0 ? files[0].url : null, // First file preview
+      file: files.length > 0 ? files[0].url : null,
       type: files.length > 0 ? "file" : "text",
     };
     setLocalMessages((prev) => [...prev, tempMsg]);
@@ -108,13 +108,12 @@ function ChatMainPage() {
 
       // Append files to formData
       files.forEach((file) => {
-        formData.append("files", file.file); // Append each file as a separate image
+        formData.append("files", file.file);
       });
 
-      // Send the FormData to the server
       try {
-        await sendFileMessage(formData); // Send FormData via the mutation
-        setFiles([]); // Reset files after sending
+        await sendFileMessage(formData);
+        setFiles([]);
       } catch (error) {
         console.error("Error sending file message:", error);
       }
@@ -128,6 +127,77 @@ function ChatMainPage() {
     }
 
     form.resetFields();
+  };
+
+  // Image modal functions
+  const openImageModal = (images, index) => {
+    setModalImages(images);
+    setCurrentImageIndex(index);
+  };
+
+  const closeImageModal = () => {
+    setModalImages(null);
+    setCurrentImageIndex(0);
+  };
+
+  // Render images function
+  const renderImages = (msg) => {
+    const files = msg.files;
+    if (!files || files.length === 0) return null;
+
+    const imageFiles = files.filter(
+      (file) =>
+        typeof file === "string" &&
+        (file.match(/^data:image/) ||
+          file.match(/^blob/) ||
+          file.match(/\.(jpg|jpeg|png|gif|webp)$/i) ||
+          file.includes("/uploads/"))
+    );
+
+    if (imageFiles.length === 0) return null;
+
+    // Single image
+    if (imageFiles.length === 1) {
+      return (
+        <div
+          className="mb-2 cursor-pointer"
+          onClick={() => openImageModal(imageFiles, 0)}
+        >
+          <img
+            src={imageFiles[0]}
+            alt="uploaded"
+            className="rounded-lg max-w-[250px] max-h-[250px] object-cover hover:opacity-90 transition-opacity"
+          />
+        </div>
+      );
+    }
+
+    // Multiple images - grid layout
+    const gridClass =
+      imageFiles.length === 2
+        ? "grid-cols-2"
+        : imageFiles.length === 3
+        ? "grid-cols-3"
+        : "grid-cols-2";
+
+    return (
+      <div className={`grid ${gridClass} gap-1 mb-2 max-w-[300px]`}>
+        {imageFiles.map((file, idx) => (
+          <div
+            key={idx}
+            className="relative cursor-pointer overflow-hidden rounded-lg hover:opacity-90 transition-opacity"
+            onClick={() => openImageModal(imageFiles, idx)}
+          >
+            <img
+              src={file}
+              alt={`uploaded-${idx}`}
+              className="w-full object-cover"
+              style={{ height: imageFiles.length <= 2 ? "150px" : "100px" }}
+            />
+          </div>
+        ))}
+      </div>
+    );
   };
 
   const allMessages = [...messages, ...localMessages];
@@ -145,7 +215,6 @@ function ChatMainPage() {
             />
             <div>
               <p className="text-lg font-semibold">{user2.fullName}</p>
-              <span className="text-xs text-gray-500">Active now</span>
             </div>
           </div>
 
@@ -153,6 +222,7 @@ function ChatMainPage() {
           <div className="flex-1 h-[calc(100vh-300px)] p-4 overflow-y-auto hide-scrollbar flex flex-col gap-3 bg-gray-100">
             {allMessages.length > 0 ? (
               allMessages.map((msg, index) => {
+                console.log(msg);
                 const isMyMessage = msg?.sender?._id === admin?._id;
                 return (
                   <div
@@ -177,12 +247,17 @@ function ChatMainPage() {
                           : "bg-white text-gray-800 rounded-bl-none"
                       )}
                     >
-                      {msg.type === "file" && msg.file ? (
+                      {/* Render images if files array exists */}
+                      {msg.files && msg.files.length > 0 && renderImages(msg)}
+
+                      {/* Old file handling - keep for backward compatibility */}
+                      {msg.type === "file" && msg.file && !msg.files ? (
                         msg.file.match(/^data:image|^blob/) ? (
                           <img
                             src={msg.file}
                             alt="uploaded"
-                            className="w-40 h-auto rounded-lg mb-2"
+                            className="w-40 h-auto rounded-lg mb-2 cursor-pointer"
+                            onClick={() => openImageModal([msg.file], 0)}
                           />
                         ) : (
                           <a
@@ -195,7 +270,10 @@ function ChatMainPage() {
                           </a>
                         )
                       ) : null}
+
+                      {/* Render message text if exists */}
                       {msg?.message && <p>{msg?.message}</p>}
+
                       <div
                         className={cn(
                           "text-[10px] mt-1 opacity-70",
@@ -262,12 +340,12 @@ function ChatMainPage() {
                 {files.length > 0 && (
                   <div className="absolute bottom-12 right-20 bg-white border p-2 rounded shadow">
                     <div className="flex items-center gap-2">
-                      {files.map((file, index) => (
+                      {files?.map((file, index) => (
                         <div key={index} className="relative">
                           <img
                             src={file.url}
                             alt="preview"
-                            className="w-10 h-10 rounded object-cover"
+                            className="w-16 h-16 rounded object-cover"
                           />
                           <button
                             type="button"
@@ -291,6 +369,15 @@ function ChatMainPage() {
             </Form>
           </div>
         </>
+      )}
+
+      {/* Image Modal */}
+      {modalImages && (
+        <ImageModal
+          images={modalImages}
+          currentIndex={currentImageIndex}
+          onClose={closeImageModal}
+        />
       )}
     </div>
   );

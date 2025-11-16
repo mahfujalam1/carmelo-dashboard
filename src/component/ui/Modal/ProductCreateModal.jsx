@@ -4,6 +4,7 @@ import { Input, Select, Button, Form, Upload, message } from "antd";
 import { useGetCategoriesQuery } from "../../../redux/features/categories/categories";
 import { PlusOutlined } from "@ant-design/icons";
 import { useAddProductMutation } from "../../../redux/features/product/productApi";
+import { toast } from "sonner";
 
 const { TextArea } = Input;
 
@@ -47,6 +48,7 @@ const ProductCreateModal = ({ onClose, onSave }) => {
     try {
       console.log(formData);
       await addProduct(formData).unwrap();
+      toast.success("Product Added Successfully!")
       onSave();
       onClose();
     } catch (error) {

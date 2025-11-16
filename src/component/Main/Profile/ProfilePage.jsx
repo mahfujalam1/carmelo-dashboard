@@ -14,6 +14,7 @@ export default function ProfilePage() {
   const [updateProfile] = useUdpateMyProfileMutation();
   const [changePassword] = useChangePasswordMutation();
   const userData = data?.data;
+  localStorage.setItem("user", userData);
   const [form] = Form.useForm();
 
   useEffect(() => {

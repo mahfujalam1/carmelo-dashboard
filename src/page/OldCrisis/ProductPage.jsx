@@ -34,13 +34,11 @@ export default function ProductsPage() {
   const onAdd = () => setOpenCreateModal(true);
   const closeModal = () => {
     setOpenCreateModal(false);
-    refetch();
   };
 
   useEffect(() => {
     const delay = setTimeout(() => {
       setPage(1);
-      refetch();
     }, 400);
 
     return () => clearTimeout(delay);

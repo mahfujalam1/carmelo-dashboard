@@ -73,7 +73,7 @@ export default function NewOrdersTable() {
     <div className="rounded-2xl border bg-white shadow-sm">
       <div className="flex items-center justify-between px-4 py-3">
         <span className="text-base font-semibold">New Order</span>
-        <Button type="link" className="text-sm text-gray-600">
+        <Button href="/orders" type="link" className="text-sm text-gray-600">
           View all
         </Button>
       </div>

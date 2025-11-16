@@ -21,11 +21,16 @@ import ProductsPage from "../page/OldCrisis/ProductPage";
 import Templates from "../page/templates/Templates";
 import ProfilePage from "../component/Main/Profile/ProfilePage";
 import NewsTable from "../page/News/NewsTable";
+import AdminRoutes from "./AdminRoutes";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <MainLayout />,
+    element: (
+      <AdminRoutes>
+        <MainLayout />
+      </AdminRoutes>
+    ),
     errorElement: <h1>Error</h1>,
     children: [
       {

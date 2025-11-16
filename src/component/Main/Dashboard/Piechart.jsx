@@ -61,7 +61,7 @@ export default function EarningGrowthChart() {
 
   // Fetch dynamic data from the API
   const { data, isLoading, error } = useGetPaymentesGrowthQuery(year);
-const earingData = data?.data || [];
+  const earingData = data?.data || [];
   // Process API data into months and totals
   const chartData = useMemo(() => {
     if (!earingData) return [];

@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useDispatch } from "react-redux"; // এটা add করুন
 import { logoutUser } from "../../../redux/features/auth/authSlice";
 
 const navItems = [
@@ -40,9 +41,10 @@ export default function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const navigate = useNavigate();
+  const dispatch = useDispatch(); // এটা add করুন
 
   const handleLogout = () => {
-    logoutUser();
+    dispatch(logoutUser()); // dispatch করুন
     toast.success("User Logged Out!");
     navigate("/auth");
   };

@@ -1,12 +1,7 @@
 /* eslint-disable react/prop-types */
-// AdminRoutes.js
 import { Navigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
-import { logoutUser } from "../redux/features/auth/authSlice"; // আপনার path অনুযায়ী adjust করুন
 
-const AdminRoutes = ({ children }) => {
-  const dispatch = useDispatch();
-
+const ProtectedRoute = ({ children }) => {
   // localStorage থেকে token এবং user পড়া
   const token = localStorage.getItem("token");
   const userStr = localStorage.getItem("user");
@@ -21,20 +16,16 @@ const AdminRoutes = ({ children }) => {
     user = JSON.parse(userStr);
   } catch (error) {
     console.error("Error parsing user from localStorage:", error);
-    // Invalid user data থাকলে logout করে auth এ redirect
-    dispatch(logoutUser());
     return <Navigate to="/auth" replace />;
   }
 
-  // User admin না হলে logout করে auth এ redirect
-  const isAdmin = user?.role === "admin";
-  if (!isAdmin) {
-    dispatch(logoutUser());
+  // User না থাকলে auth এ redirect
+  if (!user) {
     return <Navigate to="/auth" replace />;
   }
 
-  // If admin, render the requested admin route component
+  // সব ঠিক থাকলে route render করবে
   return <>{children}</>;
 };
 
-export default AdminRoutes;
+export default ProtectedRoute;
